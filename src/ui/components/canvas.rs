@@ -64,7 +64,7 @@ impl Canvas {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct CanvasParams {
     pub center: Point2D,
     pub resolution: Resolution,
@@ -141,7 +141,7 @@ impl CanvasParams {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone)]
 pub struct Resolution {
     pub width: f32,
     pub height: f32,

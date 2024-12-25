@@ -54,8 +54,8 @@ impl Grid {
         self.unit_y = Point2D::new(0.0, canvas_params.unit_length);
 
         let offset = (canvas_params.offset.0, canvas_params.offset.1);
-        let resolution = canvas_params.resolution;
-        let canvas_center = canvas_params.center;
+        let resolution = &canvas_params.resolution;
+        let canvas_center = &canvas_params.center;
 
         // Sides of grid: left and right
         let width = (
