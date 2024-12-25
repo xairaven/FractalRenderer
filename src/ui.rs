@@ -9,7 +9,7 @@ pub const WINDOW_HEIGHT: f32 = 550.0;
 pub fn start(crate_name: String, theme: ThemePreference) -> eframe::Result {
     let native_options = NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title(format!("Computer Graphics: {crate_name}"))
+            .with_title(format!("{crate_name}"))
             .with_inner_size([WINDOW_WIDTH, WINDOW_HEIGHT])
             .with_min_inner_size([WINDOW_WIDTH, WINDOW_HEIGHT])
             .with_icon(
