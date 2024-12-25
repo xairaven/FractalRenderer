@@ -28,10 +28,6 @@ mod app;
 
 mod config;
 mod context;
-mod errors {
-    pub mod dotenv;
-    pub mod logging;
-}
 mod graphics {
     pub mod grid;
 }

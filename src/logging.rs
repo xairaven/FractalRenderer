@@ -1,6 +1,6 @@
-use crate::errors::logging::LogError;
 use chrono::{Datelike, Local};
-use log::LevelFilter;
+use log::{LevelFilter, SetLoggerError};
+use thiserror::Error;
 
 pub fn init(log_level: LevelFilter, file_name: &str) -> Result<(), LogError> {
     let mut dispatcher = fern::Dispatch::new().level(log_level);
@@ -36,4 +36,13 @@ pub fn generate_log_name(crate_name: &str) -> String {
 
     let crate_name_formatted = crate_name.replace(" ", "-");
     format!("{crate_name_formatted}_{date}.log")
+}
+
+#[derive(Error, Debug)]
+pub enum LogError {
+    #[error("Cannot access log file.")]
+    CannotAccessLogFile,
+
+    #[error("Logger initialization error.")]
+    SetLoggerError(SetLoggerError),
 }

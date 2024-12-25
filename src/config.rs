@@ -1,9 +1,9 @@
-use crate::errors::dotenv::DotenvError;
 use dotenvy::dotenv;
 use egui::ThemePreference;
 use log::LevelFilter;
 use std::env;
 use std::str::FromStr;
+use thiserror::Error;
 
 pub struct AppConfig {
     pub name: String,
@@ -41,4 +41,25 @@ impl AppConfig {
             theme,
         })
     }
+}
+
+#[derive(Error, Debug)]
+pub enum DotenvError {
+    #[error("Config is not loaded.")]
+    ConfigNotLoaded,
+
+    #[error("Log level is not loaded.")]
+    LogLevelNotLoaded,
+
+    #[error("Log level is undefined.")]
+    LogLevelUndefined,
+
+    #[error("Crate name is not loaded.")]
+    NameNotLoaded,
+
+    #[error("Theme is not loaded.")]
+    ThemeNotLoaded,
+
+    #[error("Theme is undefined.")]
+    ThemeUndefined,
 }
