@@ -1,0 +1,12 @@
+[package]
+name = "fractal-renderer"
+version = "0.1.0"
+authors = ["Alex Kovalov <alexkovalevkpi@gmail.com>"]
+edition = "2021"
+rust-version = "1.83"
+repository = "https://github.com/xairaven/FractalRenderer"
+
+[dependencies]
+
+[profile.release]
+lto = true
