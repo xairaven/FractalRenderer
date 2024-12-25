@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::ui::components::canvas;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::windows::Window;
 use egui::{DragValue, Grid, RichText};
@@ -34,6 +35,18 @@ impl Settings {
             ui.add_space(10.0);
 
             ui.collapsing("Canvas Settings", |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Pixels per Centimeter:");
+                    ui.add(
+                        DragValue::new(&mut canvas.params.px_per_cm)
+                            .speed(1)
+                            .range(5.0..=100.0)
+                            .suffix(" cm."),
+                    );
+                });
+
+                ui.add_space(10.0);
+
                 ui.checkbox(
                     &mut canvas.params.is_dragging_enabled,
                     "Enable Drag & Offset",
@@ -49,6 +62,7 @@ impl Settings {
 
                 ui.vertical_centered(|ui| {
                     if ui.button("Reset Settings").clicked() {
+                        canvas.params.px_per_cm = canvas::DEFAULT_PX_PER_CM;
                         canvas.params.is_dragging_enabled = false;
                         canvas.params.offset = (0.0, 0.0);
                     }

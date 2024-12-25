@@ -64,6 +64,8 @@ impl Canvas {
     }
 }
 
+pub const DEFAULT_PX_PER_CM: f32 = 20.0;
+
 #[derive(Debug, Clone)]
 pub struct CanvasParams {
     pub center: Point2D,
@@ -80,7 +82,7 @@ impl Default for CanvasParams {
         Self {
             center: Default::default(),
             resolution: Default::default(),
-            px_per_cm: 20.0,
+            px_per_cm: DEFAULT_PX_PER_CM,
             unit_length: 1.0,
 
             is_dragging_enabled: true,
