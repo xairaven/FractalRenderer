@@ -55,7 +55,8 @@ impl Canvas {
                 // Pixels per centimeter updating
                 ui.input(|i| {
                     let delta = i.smooth_scroll_delta.y;
-                    self.params.px_per_cm += delta * 0.1;
+                    self.params.px_per_cm = (self.params.px_per_cm + delta * 0.1)
+                        .clamp(MIN_PX_PER_CM, MAX_PX_PER_CM);
                 });
 
                 self.process(ui, context, &response);
@@ -65,6 +66,8 @@ impl Canvas {
 }
 
 pub const DEFAULT_PX_PER_CM: f32 = 20.0;
+pub const MIN_PX_PER_CM: f32 = 5.0;
+pub const MAX_PX_PER_CM: f32 = 100.0;
 
 #[derive(Debug, Clone)]
 pub struct CanvasParams {

@@ -40,7 +40,7 @@ impl Settings {
                     ui.add(
                         DragValue::new(&mut canvas.params.px_per_cm)
                             .speed(1)
-                            .range(5.0..=100.0)
+                            .range(canvas::MIN_PX_PER_CM..=canvas::MAX_PX_PER_CM)
                             .suffix(" cm."),
                     );
                 });
