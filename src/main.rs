@@ -28,6 +28,7 @@ mod app;
 
 mod config;
 mod context;
+mod fractals;
 mod graphics {
     pub mod grid;
 }

@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::fractals::FractalType;
 use crate::ui::components::canvas;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::windows::Window;
@@ -29,6 +30,24 @@ impl Settings {
             });
 
             ui.add_space(10.0);
+
+            Grid::new("FractalTypeGrid").num_columns(2).show(ui, |ui| {
+                ui.label("Type:");
+                egui::ComboBox::from_id_salt("FractalType")
+                    .selected_text(format!("{}", context.fractal_type))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(
+                            &mut context.fractal_type,
+                            FractalType::Ifs,
+                            FractalType::Ifs.to_string(),
+                        );
+                        ui.selectable_value(
+                            &mut context.fractal_type,
+                            FractalType::LSystem,
+                            FractalType::LSystem.to_string(),
+                        );
+                    });
+            });
 
             ui.separator();
 
@@ -139,5 +158,6 @@ impl Settings {
     fn reset_to_defaults(&mut self, context: &mut Context, canvas: &mut Canvas) {
         canvas.params = Default::default();
         context.grid = Default::default();
+        context.fractal_type = Default::default();
     }
 }
