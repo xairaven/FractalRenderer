@@ -16,7 +16,7 @@ pub fn probability_range(systems: &[[f32; 7]]) -> Result<(), ValidationError> {
 
         if !(0.0..=(1.0 + EPSILON)).contains(probability) {
             return Err(ValidationError::BadProbability(format!(
-                "Value: {}",
+                "Value: {:.2}",
                 probability
             )));
         }
@@ -30,7 +30,7 @@ pub fn probability_sum(systems: &[[f32; 7]]) -> Result<(), ValidationError> {
 
     if sum > 1.0 + EPSILON {
         return Err(ValidationError::BadProbabilitySum(format!(
-            "Sum is {:.6}",
+            "Sum is {:.2}",
             sum
         )));
     }
@@ -64,13 +64,7 @@ impl ValidationError {
         if let Some(additional_info) = self.additional_info() {
             message += &format!("\n\nAdditional Info:\n{}", additional_info);
         }
-
-        MessageWindow::default()
-            .with_message(message)
-            .with_name("Error ❎")
-            .with_height(500.0)
-            .with_width(300.0)
-            .with_collapsible(false)
+        MessageWindow::error(&message)
     }
 }
 

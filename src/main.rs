@@ -30,6 +30,9 @@ fn main() {
 
 mod app;
 
+mod common {
+    pub mod file_utils;
+}
 mod config;
 mod context;
 mod fractals;

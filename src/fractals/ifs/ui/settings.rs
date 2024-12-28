@@ -1,9 +1,13 @@
+use crate::common;
 use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::ui::parameters::IfsParametersWindow;
+use crate::fractals::ifs::utilities;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::styles::colors;
+use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{Button, DragValue, Grid, RichText};
+use indoc::indoc;
 
 #[derive(Default)]
 pub struct IfsSettingsComponent {
@@ -67,6 +71,56 @@ impl IfsSettingsComponent {
             if ui.button("Reset Settings").clicked() {
                 *state = Default::default();
             }
+        });
+
+        ui.add_space(10.0);
+
+        ui.collapsing("Load from File", |ui| {
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("Open File...").clicked() {
+                    let json = match common::file_utils::load_with_file_pick() {
+                        Some(Ok(json)) => json,
+                        Some(Err(err)) => {
+                            let message = format!("File Error: {}", err);
+                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            return;
+                        }
+                        None => { return },
+                    };
+
+                    let dto = match utilities::json::parse(json) {
+                        Ok(value) => value,
+                        Err(err) => {
+                            let message = format!("JSON Error: {}", err);
+                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            return;
+                        }
+                    };
+
+                    if let Err(err) = dto.load(state) {
+                        self.sub_window = Some(Box::new(err.window()));
+                    };
+                }
+                if ui.button("Help").clicked() {
+                    let message = indoc! {"
+                            File format: JSON, arrays with 7 numbers.
+                            Numbers: A, B, D, E, C, F, Probability.
+
+                            Example:
+                            {
+                                \"systems\": [
+                                    [0, 0, 0, 0.16, 0, 0, 0.01],
+                                    [0.85, 0.04, -0.04, 0.85, 0, 1.6, 0.85],
+                                    [0.2, -0.26, 0.23, 0.22, 0, 1.6, 0.07],
+                                    [-0.15, 0.28, 0.26, 0.24, 0, 0.44, 0.07]
+                                ]
+                            }
+
+                            You can find other examples in the 'src/fractals/ifs/examples' folder.
+                        "};
+                    self.sub_window = Some(Box::new(MessageWindow::help(message)));
+                }
+            });
         });
     }
 }

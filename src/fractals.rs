@@ -31,6 +31,9 @@ impl FractalType {
 
 pub mod ifs {
     pub mod model;
+    pub mod utilities {
+        pub mod json;
+    }
     pub mod state;
     pub mod system;
     pub mod validation;

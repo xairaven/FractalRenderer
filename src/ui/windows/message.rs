@@ -54,6 +54,24 @@ impl SubWindowProvider for MessageWindow {
 }
 
 impl MessageWindow {
+    pub fn error(message: &str) -> Self {
+        MessageWindow::default()
+            .with_message(message)
+            .with_name("Error ❎")
+            .with_height(500.0)
+            .with_width(300.0)
+            .with_collapsible(false)
+    }
+
+    pub fn help(message: &str) -> Self {
+        MessageWindow::default()
+            .with_message(message)
+            .with_name("Help ❓")
+            .with_height(500.0)
+            .with_width(300.0)
+            .with_collapsible(false)
+    }
+
     pub fn with_name(mut self, name: &str) -> Self {
         self.name = name.to_string();
         self
