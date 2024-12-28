@@ -21,6 +21,7 @@ log = "0.4.22"                # Logging facade.
 nalgebra = "0.33.2"           # Matrices, linear algebra.
 rand = "0.8.5"                # Random number generators and other randomness functionality.
 rfd = "0.15.1"                # File Dialogs.
+serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.134"        # A JSON serialization/deserialization library
 strum_macros = "0.26.4"       # Helpful macros for working with enums and strings
 thiserror = "2.0.9"           # Custom enum errors.
