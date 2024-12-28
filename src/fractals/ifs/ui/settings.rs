@@ -1,8 +1,9 @@
-use crate::common;
 use crate::fractals::ifs::examples::Example;
 use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::ui::parameters::IfsParametersWindow;
 use crate::fractals::ifs::utilities;
+use crate::io;
+use crate::io::filter::FileFilter;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
@@ -80,17 +81,16 @@ impl IfsSettingsComponent {
             ui.vertical_centered_justified(|ui| {
                 for example in Example::iter() {
                     if ui.button(example.to_string()).clicked() {
-                        let json =
-                            match common::file_utils::load_from_path(example.path()) {
-                                Ok(json) => json,
-                                Err(err) => {
-                                    *state = Default::default();
-                                    let message = format!("File Error: {}", err);
-                                    self.sub_window =
-                                        Some(Box::new(MessageWindow::error(&message)));
-                                    return;
-                                },
-                            };
+                        let json = match io::operations::load_from_path(example.path()) {
+                            Ok(json) => json,
+                            Err(err) => {
+                                *state = Default::default();
+                                let message = format!("File Error: {}", err);
+                                self.sub_window =
+                                    Some(Box::new(MessageWindow::error(&message)));
+                                return;
+                            },
+                        };
 
                         self.load_state_from_json(state, json);
                     }
@@ -103,7 +103,7 @@ impl IfsSettingsComponent {
         ui.collapsing("Load from File", |ui| {
             ui.vertical_centered_justified(|ui| {
                 if ui.button("Open File...").clicked() {
-                    let json = match common::file_utils::load_with_file_pick() {
+                    let json = match io::operations::load_with_file_pick(FileFilter::json()) {
                         Some(Ok(json)) => json,
                         Some(Err(err)) => {
                             let message = format!("File Error: {}", err);

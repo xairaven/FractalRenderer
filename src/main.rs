@@ -30,9 +30,6 @@ fn main() {
 
 mod app;
 
-mod common {
-    pub mod file_utils;
-}
 mod config;
 mod context;
 mod fractals;
@@ -43,6 +40,10 @@ mod geometry {
     pub mod dot;
     pub mod line2d;
     pub mod point2d;
+}
+mod io {
+    pub mod filter;
+    pub mod operations;
 }
 mod logging;
 mod math {

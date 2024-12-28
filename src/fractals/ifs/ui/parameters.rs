@@ -1,6 +1,7 @@
-use crate::common;
 use crate::context::Context;
 use crate::fractals::ifs::utilities::json;
+use crate::io;
+use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
@@ -150,7 +151,7 @@ impl Window for IfsParametersWindow {
                             }
                         };
 
-                        if let Some(Err(err)) = common::file_utils::save_with_file_pick(json) {
+                        if let Some(Err(err)) = io::operations::save_with_file_pick(json, FileFilter::json()) {
                             let message = format!("File Error: {}", err);
                             self.sub_window = Some(Box::new(MessageWindow::error(&message)));
                         }
