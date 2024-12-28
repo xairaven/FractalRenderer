@@ -1,10 +1,11 @@
+use crate::context::Context;
 use crate::fractals::ifs::examples::Example;
 use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::ui::parameters::IfsParametersWindow;
 use crate::fractals::ifs::utilities;
 use crate::io;
 use crate::io::filter::FileFilter;
-use crate::ui::components::canvas::Canvas;
+use crate::ui::components::settings::SettingsBlock;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
@@ -12,17 +13,15 @@ use egui::{Button, DragValue, Grid, RichText};
 use indoc::indoc;
 
 #[derive(Default)]
-pub struct IfsSettingsComponent {
+pub struct IfsSettingsBlock {
     sub_window: Option<Box<dyn Window>>,
 }
 
-impl IfsSettingsComponent {
-    pub fn show(
-        &mut self, state: &mut IfsState, _canvas: &mut Canvas, ui: &mut egui::Ui,
-    ) {
+impl SettingsBlock for IfsSettingsBlock {
+    fn show(&mut self, ui: &mut egui::Ui, context: &mut Context) {
         Grid::new("StatusGrid").num_columns(2).show(ui, |ui| {
             ui.label("Status: ");
-            if state.is_initialized() {
+            if context.ifs_state.is_initialized() {
                 ui.label(RichText::new("Initialized!").color(colors::LIME));
             } else {
                 ui.label(RichText::new("Not initialized.").color(colors::RED));
@@ -35,7 +34,7 @@ impl IfsSettingsComponent {
         Grid::new("SettingsGrid").num_columns(2).show(ui, |ui| {
             ui.label("Iterations: ");
             ui.add(
-                DragValue::new(&mut state.iterations)
+                DragValue::new(&mut context.ifs_state.iterations)
                     .speed(1)
                     .range(0..=u32::MAX),
             );
@@ -43,7 +42,7 @@ impl IfsSettingsComponent {
 
             ui.label("Dot Radius: ");
             ui.add(
-                DragValue::new(&mut state.radius_cm)
+                DragValue::new(&mut context.ifs_state.radius_cm)
                     .speed(0.01)
                     .range(0.01..=5.0)
                     .suffix(" cm."),
@@ -63,15 +62,15 @@ impl IfsSettingsComponent {
 
         ui.vertical_centered_justified(|ui| {
             if ui
-                .add_enabled(state.is_initialized(), Button::new("Draw"))
+                .add_enabled(context.ifs_state.is_initialized(), Button::new("Draw"))
                 .clicked()
             {
-                state.request_drawing();
+                context.ifs_state.request_drawing();
             }
         });
         ui.vertical_centered_justified(|ui| {
             if ui.button("Reset Settings").clicked() {
-                *state = Default::default();
+                context.ifs_state = Default::default();
             }
         });
 
@@ -84,7 +83,7 @@ impl IfsSettingsComponent {
                         let json = match io::operations::load_from_path(example.path()) {
                             Ok(json) => json,
                             Err(err) => {
-                                *state = Default::default();
+                                context.ifs_state = Default::default();
                                 let message = format!("File Error: {}", err);
                                 self.sub_window =
                                     Some(Box::new(MessageWindow::error(&message)));
@@ -92,7 +91,7 @@ impl IfsSettingsComponent {
                             },
                         };
 
-                        self.load_state_from_json(state, json);
+                        self.load_state_from_json(&mut context.ifs_state, json);
                     }
                 }
             });
@@ -113,7 +112,7 @@ impl IfsSettingsComponent {
                         None => { return },
                     };
 
-                    self.load_state_from_json(state, json);
+                    self.load_state_from_json(&mut context.ifs_state, json);
                 }
                 if ui.button("Help").clicked() {
                     let message = indoc! {"
@@ -137,7 +136,15 @@ impl IfsSettingsComponent {
             });
         });
     }
+}
 
+impl SubWindowProvider for IfsSettingsBlock {
+    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
+        self.sub_window.take()
+    }
+}
+
+impl IfsSettingsBlock {
     fn load_state_from_json(&mut self, state: &mut IfsState, json: String) {
         let dto = match utilities::json::parse(json) {
             Ok(value) => value,
@@ -151,11 +158,5 @@ impl IfsSettingsComponent {
         if let Err(err) = dto.load(state) {
             self.sub_window = Some(Box::new(err.window()));
         };
-    }
-}
-
-impl SubWindowProvider for IfsSettingsComponent {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        self.sub_window.take()
     }
 }

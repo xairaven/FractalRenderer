@@ -1,7 +1,5 @@
-use crate::context::Context;
-use crate::fractals::ifs::ui::settings::IfsSettingsComponent;
-use crate::ui::components::canvas::Canvas;
-use crate::ui::windows::{SubWindowProvider, Window};
+use crate::fractals::ifs::ui::settings::IfsSettingsBlock;
+use crate::ui::components::settings::SettingsBlock;
 use strum_macros::Display;
 
 #[derive(Copy, Clone, Display, Default, PartialEq)]
@@ -15,16 +13,10 @@ pub enum FractalType {
 }
 
 impl FractalType {
-    pub fn ui(
-        &self, canvas: &mut Canvas, context: &mut Context, ui: &mut egui::Ui,
-    ) -> Option<Box<dyn Window>> {
+    pub fn ui(&self) -> Box<dyn SettingsBlock> {
         match self {
-            FractalType::Ifs => {
-                let mut component = IfsSettingsComponent::default();
-                component.show(&mut context.ifs_state, canvas, ui);
-                component.sub_window()
-            },
-            FractalType::LSystem => None,
+            FractalType::Ifs => Box::new(IfsSettingsBlock::default()),
+            FractalType::LSystem => todo!(),
         }
     }
 }

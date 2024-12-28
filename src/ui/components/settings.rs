@@ -11,6 +11,10 @@ pub struct Settings {
     sub_window: Option<Box<dyn Window>>,
 }
 
+pub trait SettingsBlock: SubWindowProvider {
+    fn show(&mut self, ui: &mut egui::Ui, context: &mut Context);
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Self {
@@ -67,9 +71,10 @@ impl Settings {
 
             ui.add_space(10.0);
 
-            let fractal_type = context.fractal_type;
-            if let Some(inner_window) = fractal_type.ui(canvas, context, ui) {
-                self.sub_window = Some(inner_window);
+            let mut component = context.fractal_type.ui();
+            component.show(ui, context);
+            if let Some(sub_window) = component.sub_window() {
+                self.sub_window = Some(sub_window);
             }
 
             ui.separator();
