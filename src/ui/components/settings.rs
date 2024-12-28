@@ -3,7 +3,7 @@ use crate::fractals::FractalType;
 use crate::ui::components::canvas;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::windows::{SubWindowProvider, Window};
-use egui::{DragValue, Grid, RichText};
+use egui::{DragValue, Grid, RichText, UserData, ViewportCommand};
 
 pub struct Settings {
     pub panel_width: f32,
@@ -48,6 +48,21 @@ impl Settings {
                             FractalType::LSystem.to_string(),
                         );
                     });
+            });
+
+            ui.add_space(10.0);
+
+            ui.vertical_centered_justified(|ui| {
+                if ui
+                    .button("Take a Screenshot")
+                    .on_hover_text(
+                        "Takes a screenshot of the canvas.\nCurrently only .png files are supported.",
+                    )
+                    .clicked()
+                {
+                    ui.ctx()
+                        .send_viewport_cmd(ViewportCommand::Screenshot(UserData::default()));
+                }
             });
 
             ui.add_space(10.0);

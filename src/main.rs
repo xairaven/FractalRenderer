@@ -44,6 +44,7 @@ mod geometry {
 mod io {
     pub mod filter;
     pub mod operations;
+    pub mod screenshot;
 }
 mod logging;
 mod math {

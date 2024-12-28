@@ -1,7 +1,9 @@
 use crate::context::Context;
 use crate::fractals::FractalType;
 use crate::geometry::point2d::Point2D;
+use crate::io::screenshot::Screenshot;
 use crate::ui::styles::colors;
+use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{Frame, Painter, Response, Sense, Shape, Vec2};
 
@@ -60,6 +62,37 @@ impl Canvas {
                     let delta = i.smooth_scroll_delta.y;
                     self.params.px_per_cm = (self.params.px_per_cm + delta * 0.1)
                         .clamp(MIN_PX_PER_CM, MAX_PX_PER_CM);
+                });
+
+                // Check for screenshot:
+                ui.input(|i| {
+                    let image = i
+                        .events
+                        .iter()
+                        .filter_map(|e| {
+                            if let egui::Event::Screenshot { image, .. } = e {
+                                Some(image.clone())
+                            } else {
+                                None
+                            }
+                        })
+                        .last();
+
+                    if let Some(image) = image {
+                        let screenshot = Screenshot::default()
+                            .with_px_per_point(i.pixels_per_point)
+                            .with_region(response.rect)
+                            .with_image(image);
+
+                        if let Err(err) = screenshot.save_dialog() {
+                            let message = format!(
+                                "Error occurred while saving screenshot: {}",
+                                err
+                            );
+                            self.sub_window =
+                                Some(Box::new(MessageWindow::error(&message)));
+                        }
+                    }
                 });
 
                 self.process(ui, context, &response);
