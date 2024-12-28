@@ -1,8 +1,10 @@
+use crate::fractals::ifs::model::Model;
 use crate::fractals::ifs::validation::ValidationError;
 use crate::fractals::ifs::{model, validation};
 use crate::geometry::dot::Dot;
+use crate::ui::components::canvas::CanvasParams;
 use crate::ui::styles::colors;
-use egui::Color32;
+use egui::{Color32, Shape};
 
 pub struct IfsState {
     is_initialized: bool,
@@ -41,6 +43,25 @@ impl Default for IfsState {
 }
 
 impl IfsState {
+    // TODO: Caching
+    pub fn shapes(&mut self, params: &CanvasParams) -> Vec<Shape> {
+        if self.is_drawing_requested() {
+            self.is_drawing_requested = false;
+            self.dots = Model::default()
+                .with_systems(self.systems.clone())
+                .with_colors(self.colors.clone())
+                .with_iterations(self.iterations)
+                .with_radius(self.radius_cm)
+                .dots();
+        }
+
+        self.dots
+            .clone()
+            .into_iter()
+            .map(|dot| dot.to_screen(params).to_shape())
+            .collect()
+    }
+
     pub fn is_initialized(&self) -> bool {
         self.is_initialized
     }

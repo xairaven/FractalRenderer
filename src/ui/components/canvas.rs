@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::fractals::FractalType;
 use crate::geometry::point2d::Point2D;
 use crate::ui::styles::colors;
 use crate::ui::windows::{SubWindowProvider, Window};
@@ -30,8 +31,13 @@ impl Canvas {
         self.params.update_offset_on_drag(ui, response);
 
         let mut grid = context.grid.shapes(&self.params);
+        let mut fractal = match context.fractal_type {
+            FractalType::Ifs => context.ifs_state.shapes(&self.params),
+            FractalType::LSystem => vec![],
+        };
 
         self.shapes.append(&mut grid);
+        self.shapes.append(&mut fractal);
     }
 
     pub fn draw(&mut self, painter: &Painter) {
