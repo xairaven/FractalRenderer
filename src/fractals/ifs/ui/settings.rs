@@ -1,4 +1,5 @@
 use crate::common;
+use crate::fractals::ifs::examples::Example;
 use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::ui::parameters::IfsParametersWindow;
 use crate::fractals::ifs::utilities;
@@ -75,6 +76,30 @@ impl IfsSettingsComponent {
 
         ui.add_space(10.0);
 
+        ui.collapsing("Load from Example", |ui| {
+            ui.vertical_centered_justified(|ui| {
+                for example in Example::iter() {
+                    if ui.button(example.to_string()).clicked() {
+                        let json =
+                            match common::file_utils::load_from_path(example.path()) {
+                                Ok(json) => json,
+                                Err(err) => {
+                                    *state = Default::default();
+                                    let message = format!("File Error: {}", err);
+                                    self.sub_window =
+                                        Some(Box::new(MessageWindow::error(&message)));
+                                    return;
+                                },
+                            };
+
+                        self.load_state_from_json(state, json);
+                    }
+                }
+            });
+        });
+
+        ui.add_space(10.0);
+
         ui.collapsing("Load from File", |ui| {
             ui.vertical_centered_justified(|ui| {
                 if ui.button("Open File...").clicked() {
@@ -88,18 +113,7 @@ impl IfsSettingsComponent {
                         None => { return },
                     };
 
-                    let dto = match utilities::json::parse(json) {
-                        Ok(value) => value,
-                        Err(err) => {
-                            let message = format!("JSON Error: {}", err);
-                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
-                            return;
-                        }
-                    };
-
-                    if let Err(err) = dto.load(state) {
-                        self.sub_window = Some(Box::new(err.window()));
-                    };
+                    self.load_state_from_json(state, json);
                 }
                 if ui.button("Help").clicked() {
                     let message = indoc! {"
@@ -116,12 +130,27 @@ impl IfsSettingsComponent {
                                 ]
                             }
 
-                            You can find other examples in the 'src/fractals/ifs/examples' folder.
+                            You can find other examples in the 'assets/fractals/ifs' folder.
                         "};
                     self.sub_window = Some(Box::new(MessageWindow::help(message)));
                 }
             });
         });
+    }
+
+    fn load_state_from_json(&mut self, state: &mut IfsState, json: String) {
+        let dto = match utilities::json::parse(json) {
+            Ok(value) => value,
+            Err(err) => {
+                let message = format!("JSON Error: {}", err);
+                self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                return;
+            },
+        };
+
+        if let Err(err) = dto.load(state) {
+            self.sub_window = Some(Box::new(err.window()));
+        };
     }
 }
 
