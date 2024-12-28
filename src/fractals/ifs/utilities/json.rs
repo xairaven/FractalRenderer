@@ -6,6 +6,14 @@ pub fn parse(json: String) -> serde_json::Result<IfsDto> {
     serde_json::from_str(&json)
 }
 
+pub fn serialize(state: &IfsState) -> serde_json::Result<String> {
+    let dto = IfsDto {
+        systems: state.systems.clone(),
+    };
+
+    serde_json::to_string_pretty(&dto)
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct IfsDto {
     systems: Vec<[f32; 7]>,

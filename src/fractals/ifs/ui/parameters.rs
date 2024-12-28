@@ -1,5 +1,8 @@
+use crate::common;
 use crate::context::Context;
+use crate::fractals::ifs::utilities::json;
 use crate::ui::styles::colors;
+use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{Button, DragValue, Grid, RichText};
 
@@ -136,12 +139,30 @@ impl Window for IfsParametersWindow {
                     }
                 });
 
+                ui.vertical_centered_justified(|ui| {
+                    if ui.button("Save to File...").clicked() {
+                        let json = match json::serialize(&context.ifs_state) {
+                            Ok(value) => value,
+                            Err(err) => {
+                                let message = format!("JSON Error: {}", err);
+                                self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                                return;
+                            }
+                        };
+
+                        if let Some(Err(err)) = common::file_utils::save_with_file_pick(json) {
+                            let message = format!("File Error: {}", err);
+                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                        }
+                    }
+                });
+
                 ui.add_space(10.0);
 
                 ui.columns(2, |columns| {
                     columns[0].vertical_centered(|ui| {
                         if ui
-                            .add_sized([self.width / 2.0 - 15.0, 20.0], Button::new("Save"))
+                            .add_sized([self.width / 2.0 - 15.0, 20.0], Button::new("Ok"))
                             .clicked()
                         {
                             let initialization_result = context.ifs_state.initialize();
