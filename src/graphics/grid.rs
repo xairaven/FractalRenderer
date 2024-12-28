@@ -19,6 +19,10 @@ pub struct Grid {
     axis_x_stroke: Stroke,
     axis_y_stroke: Stroke,
     grid_stroke: Stroke,
+
+    pub are_settings_changed: bool,
+    cache_params: CanvasParams,
+    cache_lines: Vec<Shape>,
 }
 
 impl Default for Grid {
@@ -35,6 +39,10 @@ impl Default for Grid {
             axis_x_stroke: strokes::axis_red(),
             axis_y_stroke: strokes::axis_lime(),
             grid_stroke: strokes::grid_gray(),
+
+            are_settings_changed: false,
+            cache_params: Default::default(),
+            cache_lines: vec![],
         }
     }
 }
@@ -43,10 +51,18 @@ impl Grid {
     pub fn shapes(&mut self, params: &CanvasParams) -> Vec<Shape> {
         self.sync_stroke_colors();
         if self.is_enabled {
-            self.lines(params)
-                .iter()
-                .map(|line| line.to_screen(params).to_shape())
-                .collect()
+            if !params.eq(&self.cache_params) || self.are_settings_changed {
+                self.are_settings_changed = false;
+                self.cache_params = params.clone();
+                self.cache_lines = self
+                    .lines(params)
+                    .iter()
+                    .map(|line| line.to_screen(params).to_shape())
+                    .collect();
+                self.cache_lines.clone()
+            } else {
+                self.cache_lines.clone()
+            }
         } else {
             Vec::with_capacity(0)
         }

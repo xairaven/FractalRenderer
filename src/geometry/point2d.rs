@@ -12,6 +12,14 @@ pub struct Point2D {
     pub converted_to_screen: bool,
 }
 
+impl PartialEq for Point2D {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x
+            && self.y == other.y
+            && self.converted_to_screen == other.converted_to_screen
+    }
+}
+
 impl Point2D {
     pub fn new(x: f32, y: f32) -> Self {
         Self {

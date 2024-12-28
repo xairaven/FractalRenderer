@@ -118,29 +118,41 @@ impl Settings {
                 ui.label(RichText::new("Colors:").strong());
                 Grid::new("GridColors").num_columns(2).show(ui, |ui| {
                     ui.label("Axis X:");
-                    egui::color_picker::color_edit_button_srgba(
+                    if egui::color_picker::color_edit_button_srgba(
                         ui,
                         &mut context.grid.axis_x_color,
                         egui::color_picker::Alpha::Opaque,
-                    );
+                    )
+                    .changed()
+                    {
+                        context.grid.are_settings_changed = true;
+                    };
 
                     ui.end_row();
 
                     ui.label("Axis Y:");
-                    egui::color_picker::color_edit_button_srgba(
+                    if egui::color_picker::color_edit_button_srgba(
                         ui,
                         &mut context.grid.axis_y_color,
                         egui::color_picker::Alpha::Opaque,
-                    );
+                    )
+                    .changed()
+                    {
+                        context.grid.are_settings_changed = true;
+                    };
 
                     ui.end_row();
 
                     ui.label("Grid:");
-                    egui::color_picker::color_edit_button_srgba(
+                    if egui::color_picker::color_edit_button_srgba(
                         ui,
                         &mut context.grid.grid_color,
                         egui::color_picker::Alpha::Opaque,
-                    );
+                    )
+                    .changed()
+                    {
+                        context.grid.are_settings_changed = true;
+                    };
                 });
 
                 ui.add_space(10.0);
@@ -148,6 +160,7 @@ impl Settings {
                 ui.vertical_centered(|ui| {
                     if ui.button("Reset Settings").clicked() {
                         context.grid = Default::default();
+                        context.grid.are_settings_changed = true;
                         canvas.params.unit_length = 1.0;
                     }
                 });

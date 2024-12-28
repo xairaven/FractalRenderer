@@ -97,6 +97,16 @@ impl Default for CanvasParams {
     }
 }
 
+impl PartialEq for CanvasParams {
+    fn eq(&self, other: &Self) -> bool {
+        self.center.eq(&other.center)
+            && self.resolution.eq(&other.resolution)
+            && self.px_per_cm.eq(&other.px_per_cm)
+            && self.unit_length.eq(&other.unit_length)
+            && self.offset.eq(&other.offset)
+    }
+}
+
 impl CanvasParams {
     pub fn value_cm_to_px(&self, value: f32) -> f32 {
         value / self.unit_length * self.px_per_cm
@@ -153,6 +163,12 @@ impl CanvasParams {
 pub struct Resolution {
     pub width: f32,
     pub height: f32,
+}
+
+impl PartialEq for Resolution {
+    fn eq(&self, other: &Self) -> bool {
+        self.width.eq(&other.width) && self.height.eq(&other.height)
+    }
 }
 
 impl Resolution {
