@@ -1,8 +1,7 @@
-// Project attributes
+// Project lints
 #![deny(clippy::unwrap_used)]
 #![deny(clippy::expect_used)]
 #![deny(clippy::panic)]
-
 // Hide console window on Windows in release mode
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -38,6 +37,7 @@ mod graphics {
     pub mod grid;
 }
 mod geometry {
+    pub mod dot;
     pub mod line2d;
     pub mod point2d;
 }

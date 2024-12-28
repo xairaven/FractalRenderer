@@ -2,6 +2,7 @@ use crate::context::Context;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::components::settings::Settings;
 use crate::ui::windows;
+use crate::ui::windows::Window;
 use egui::ThemePreference;
 
 #[derive(Default)]
@@ -9,6 +10,8 @@ pub struct App {
     pub canvas: Canvas,
     pub context: Context,
     pub settings: Settings,
+
+    pub sub_windows: Vec<Box<dyn Window>>,
 }
 
 impl App {

@@ -2,14 +2,14 @@ use crate::context::Context;
 use crate::geometry::line2d::Line2D;
 use crate::geometry::point2d::Point2D;
 use crate::ui::styles::colors;
-use crate::ui::windows::Window;
+use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{Frame, Painter, Response, Sense, Shape, Vec2};
 
 pub struct Canvas {
     pub params: CanvasParams,
-    pub inner_windows: Vec<Box<dyn Window>>,
 
     grid: Vec<Line2D>,
+    sub_window: Option<Box<dyn Window>>,
 }
 
 impl Default for Canvas {
@@ -19,7 +19,7 @@ impl Default for Canvas {
 
             grid: Vec::with_capacity(3),
 
-            inner_windows: Vec::with_capacity(3),
+            sub_window: None,
         }
     }
 }
@@ -62,6 +62,12 @@ impl Canvas {
                 self.process(ui, context, &response);
                 self.draw(&painter);
             });
+    }
+}
+
+impl SubWindowProvider for Canvas {
+    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
+        self.sub_window.take()
     }
 }
 

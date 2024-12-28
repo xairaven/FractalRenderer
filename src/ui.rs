@@ -9,14 +9,23 @@ pub const WINDOW_HEIGHT: f32 = 550.0;
 pub fn start(crate_name: String, theme: ThemePreference) -> eframe::Result {
     let native_options = NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title(format!("{crate_name}"))
+            .with_title(&crate_name)
             .with_inner_size([WINDOW_WIDTH, WINDOW_HEIGHT])
             .with_min_inner_size([WINDOW_WIDTH, WINDOW_HEIGHT])
             .with_icon(
                 eframe::icon_data::from_png_bytes(
                     &include_bytes!("../assets/icon-256.png")[..],
                 )
-                .expect("Failed to load icon"),
+                .unwrap_or_else(|err| {
+                    log::error!(
+                        "{}",
+                        format!(
+                            "Error occurred while loading app icon. Additional Info: {}",
+                            err
+                        )
+                    );
+                    std::process::exit(1);
+                }),
             ),
         ..Default::default()
     };

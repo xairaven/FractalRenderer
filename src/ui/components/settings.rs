@@ -2,12 +2,13 @@ use crate::context::Context;
 use crate::fractals::FractalType;
 use crate::ui::components::canvas;
 use crate::ui::components::canvas::Canvas;
-use crate::ui::windows::Window;
+use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{DragValue, Grid, RichText};
 
 pub struct Settings {
     pub panel_width: f32,
-    pub inner_windows: Vec<Box<dyn Window>>,
+
+    sub_window: Option<Box<dyn Window>>,
 }
 
 impl Default for Settings {
@@ -15,7 +16,7 @@ impl Default for Settings {
         Self {
             panel_width: 250.0,
 
-            inner_windows: Vec::with_capacity(2),
+            sub_window: None,
         }
     }
 }
@@ -48,6 +49,13 @@ impl Settings {
                         );
                     });
             });
+
+            ui.add_space(10.0);
+
+            let fractal_type = context.fractal_type;
+            if let Some(inner_window) = fractal_type.ui(canvas, context, ui) {
+                self.sub_window = Some(inner_window);
+            }
 
             ui.separator();
 
@@ -159,5 +167,11 @@ impl Settings {
         canvas.params = Default::default();
         context.grid = Default::default();
         context.fractal_type = Default::default();
+    }
+}
+
+impl SubWindowProvider for Settings {
+    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
+        self.sub_window.take()
     }
 }
