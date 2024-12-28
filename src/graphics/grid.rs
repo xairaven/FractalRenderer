@@ -20,9 +20,7 @@ pub struct Grid {
     axis_y_stroke: Stroke,
     grid_stroke: Stroke,
 
-    pub are_settings_changed: bool,
-    cache_params: CanvasParams,
-    cache_lines: Vec<Shape>,
+    cache: GridCache,
 }
 
 impl Default for Grid {
@@ -40,9 +38,7 @@ impl Default for Grid {
             axis_y_stroke: strokes::axis_lime(),
             grid_stroke: strokes::grid_gray(),
 
-            are_settings_changed: false,
-            cache_params: Default::default(),
-            cache_lines: vec![],
+            cache: Default::default(),
         }
     }
 }
@@ -50,22 +46,22 @@ impl Default for Grid {
 impl Grid {
     pub fn shapes(&mut self, params: &CanvasParams) -> Vec<Shape> {
         self.sync_stroke_colors();
-        if self.is_enabled {
-            if !params.eq(&self.cache_params) || self.are_settings_changed {
-                self.are_settings_changed = false;
-                self.cache_params = params.clone();
-                self.cache_lines = self
-                    .lines(params)
-                    .iter()
-                    .map(|line| line.to_screen(params).to_shape())
-                    .collect();
-                self.cache_lines.clone()
-            } else {
-                self.cache_lines.clone()
-            }
-        } else {
-            Vec::with_capacity(0)
+
+        if !self.is_enabled {
+            return Vec::with_capacity(0);
         }
+
+        if !self.cache.is_valid(params) {
+            let shapes = self
+                .lines(params)
+                .into_iter()
+                .map(|line| line.to_screen(params).to_shape())
+                .collect();
+
+            self.cache.update(params, shapes);
+        }
+
+        self.cache.shapes()
     }
 
     fn lines(&mut self, canvas_params: &CanvasParams) -> Vec<Line2D> {
@@ -150,5 +146,36 @@ impl Grid {
         self.axis_x_stroke.color = self.axis_x_color;
         self.axis_y_stroke.color = self.axis_y_color;
         self.grid_stroke.color = self.grid_color;
+    }
+
+    pub fn request_cache_updating(&mut self) {
+        self.cache.request_updating();
+    }
+}
+
+#[derive(Default)]
+struct GridCache {
+    are_settings_changed: bool,
+    params: CanvasParams,
+    shapes: Vec<Shape>,
+}
+
+impl GridCache {
+    pub fn is_valid(&self, params: &CanvasParams) -> bool {
+        params == &self.params && !self.are_settings_changed
+    }
+
+    pub fn update(&mut self, canvas_params: &CanvasParams, shapes: Vec<Shape>) {
+        self.are_settings_changed = false;
+        self.params = canvas_params.clone();
+        self.shapes = shapes;
+    }
+
+    pub fn shapes(&self) -> Vec<Shape> {
+        self.shapes.clone()
+    }
+
+    pub fn request_updating(&mut self) {
+        self.are_settings_changed = true;
     }
 }

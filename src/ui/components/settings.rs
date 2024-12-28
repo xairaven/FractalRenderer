@@ -125,7 +125,7 @@ impl Settings {
                     )
                     .changed()
                     {
-                        context.grid.are_settings_changed = true;
+                        context.grid.request_cache_updating();
                     };
 
                     ui.end_row();
@@ -138,7 +138,7 @@ impl Settings {
                     )
                     .changed()
                     {
-                        context.grid.are_settings_changed = true;
+                        context.grid.request_cache_updating();
                     };
 
                     ui.end_row();
@@ -151,7 +151,7 @@ impl Settings {
                     )
                     .changed()
                     {
-                        context.grid.are_settings_changed = true;
+                        context.grid.request_cache_updating();
                     };
                 });
 
@@ -160,7 +160,7 @@ impl Settings {
                 ui.vertical_centered(|ui| {
                     if ui.button("Reset Settings").clicked() {
                         context.grid = Default::default();
-                        context.grid.are_settings_changed = true;
+                        context.grid.request_cache_updating();
                         canvas.params.unit_length = 1.0;
                     }
                 });
