@@ -2,7 +2,7 @@ use crate::geometry::line2d::Line2D;
 use crate::geometry::point2d::Point2D;
 use crate::ui::components::canvas::CanvasParams;
 use crate::ui::styles::{colors, strokes};
-use egui::{Color32, Stroke};
+use egui::{Color32, Shape, Stroke};
 
 pub const DEFAULT_UNIT_LENGTH: f32 = 1.0;
 
@@ -40,10 +40,13 @@ impl Default for Grid {
 }
 
 impl Grid {
-    pub fn process(&mut self, canvas_params: &CanvasParams) -> Vec<Line2D> {
+    pub fn shapes(&mut self, params: &CanvasParams) -> Vec<Shape> {
         self.sync_stroke_colors();
         if self.is_enabled {
-            self.lines(canvas_params)
+            self.lines(params)
+                .iter()
+                .map(|line| line.to_screen(params).to_shape())
+                .collect()
         } else {
             Vec::with_capacity(0)
         }

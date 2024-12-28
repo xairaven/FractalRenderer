@@ -1,5 +1,4 @@
 use crate::context::Context;
-use crate::geometry::line2d::Line2D;
 use crate::geometry::point2d::Point2D;
 use crate::ui::styles::colors;
 use crate::ui::windows::{SubWindowProvider, Window};
@@ -8,7 +7,8 @@ use egui::{Frame, Painter, Response, Sense, Shape, Vec2};
 pub struct Canvas {
     pub params: CanvasParams,
 
-    grid: Vec<Line2D>,
+    shapes: Vec<Shape>,
+
     sub_window: Option<Box<dyn Window>>,
 }
 
@@ -17,7 +17,7 @@ impl Default for Canvas {
         Self {
             params: Default::default(),
 
-            grid: Vec::with_capacity(3),
+            shapes: Vec::with_capacity(1000),
 
             sub_window: None,
         }
@@ -29,16 +29,13 @@ impl Canvas {
         // Check for dragging
         self.params.update_offset_on_drag(ui, response);
 
-        self.grid = context.grid.process(&self.params);
+        let mut grid = context.grid.shapes(&self.params);
+
+        self.shapes.append(&mut grid);
     }
 
     pub fn draw(&mut self, painter: &Painter) {
-        let grid_shapes: Vec<Shape> = self
-            .grid
-            .iter()
-            .map(|line| line.to_screen(&self.params).to_shape())
-            .collect();
-        painter.extend(grid_shapes);
+        painter.extend(std::mem::take(&mut self.shapes));
     }
 
     pub fn show_content(&mut self, context: &mut Context, ui: &mut egui::Ui) {
