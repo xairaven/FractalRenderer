@@ -23,7 +23,7 @@ rand = "0.8.5"                # Random number generators and other randomness fu
 rfd = "0.15.1"                # File Dialogs.
 serde_json = "1.0.134"        # A JSON serialization/deserialization library
 strum_macros = "0.26.4"       # Helpful macros for working with enums and strings
-thiserror = "2.0.3"           # Custom enum errors.
+thiserror = "2.0.9"           # Custom enum errors.
 
 [profile.release]
 lto = true
