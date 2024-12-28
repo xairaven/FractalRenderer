@@ -45,7 +45,7 @@ pub enum ValidationError {
     #[error("Probability sum have to be lower than 1")]
     BadProbabilitySum(String),
 
-    #[error("Probability sum have to be lower than 1")]
+    #[error("The provided list of systems is empty. At least one system is required.")]
     NoSystems,
 }
 
