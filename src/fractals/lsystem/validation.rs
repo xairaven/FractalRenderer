@@ -71,7 +71,7 @@ pub fn is_valid_char(letter: &str, index: usize) -> Result<char, ValidationError
 pub fn rule_condition_is_not_empty(
     condition: &str, index: usize,
 ) -> Result<(), ValidationError> {
-    if condition.is_empty() {
+    if condition.trim().is_empty() {
         return Err(ValidationError::RuleConditionIsEmpty(format!(
             "Rule: {}",
             index + 1
@@ -175,10 +175,184 @@ impl ValidationError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::fractals::lsystem::state::LSystemState;
 
-    // TODO: Write test
     #[test]
-    fn todo() {
-        // assert!();
+    fn valid() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn empty_axiom() {
+        let mut state = LSystemState::default();
+        state.axiom = "".to_string();
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::AxiomIsEmpty)));
+    }
+
+    #[test]
+    fn wrong_angle_range() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.angle = -1.0;
+        state.initial_angle = 1.0;
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadAngleValue)));
+    }
+
+    #[test]
+    fn wrong_initial_angle_range() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.angle = 1.0;
+        state.initial_angle = -1.0;
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadAngleValue)));
+    }
+
+    #[test]
+    fn wrong_length_range() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.length = -1.0;
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadLengthValue)));
+    }
+
+    #[test]
+    fn wrong_iterations_range() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.iterations = 0;
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadIterationsValue)));
+    }
+
+    #[test]
+    fn wrong_rule_syntax() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.rules = vec![
+            String::from("X-> X+YF++YF-FX--FXFX-YF+"),
+            String::from("-> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        let _message = String::new();
+        assert!(matches!(
+            result,
+            Err(ValidationError::WrongRuleSyntax(_message))
+        ));
+    }
+
+    #[test]
+    fn empty_rule_constant() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("  -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        let _message = String::new();
+        assert!(matches!(
+            result,
+            Err(ValidationError::RuleConstantIsEmpty(_message))
+        ));
+    }
+
+    #[test]
+    fn empty_rule_condition() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y ->  "),
+        ];
+
+        let result = state.initialize();
+
+        let _message = String::new();
+        assert!(matches!(
+            result,
+            Err(ValidationError::RuleConditionIsEmpty(_message))
+        ));
+    }
+
+    #[test]
+    fn non_alphabet_symbol_axiom() {
+        let mut state = LSystemState::default();
+        state.axiom = "FDX".to_string();
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        let _message = String::new();
+        assert!(matches!(
+            result,
+            Err(ValidationError::NonAlphabetSymbolAxiom(_message))
+        ));
+    }
+
+    #[test]
+    fn non_alphabet_symbol_condition() {
+        let mut state = LSystemState::default();
+        state.axiom = "FX".to_string();
+        state.rules = vec![
+            String::from("X -> X+YF++YF-FX--FXFX-YF+"),
+            String::from("Y -> -FX+YFYDF++YF+FX--FX-Y"),
+        ];
+
+        let result = state.initialize();
+
+        assert!(matches!(
+            result,
+            Err(ValidationError::NonAlphabetSymbolCondition(_message))
+        ));
     }
 }
