@@ -3,10 +3,12 @@ use crate::fractals::lsystem::validation;
 use crate::fractals::lsystem::validation::ValidationError;
 use crate::geometry::line2d::Line2D;
 use crate::ui::components::canvas::CanvasParams;
-use crate::ui::styles::{colors, strokes};
+use crate::ui::styles::colors;
 use eframe::epaint::Shape;
-use egui::{Color32, Stroke};
+use egui::Color32;
+use rand::Rng;
 use std::collections::HashMap;
+use strum_macros::Display;
 
 pub struct LSystemState {
     is_initialized: bool,
@@ -19,8 +21,7 @@ pub struct LSystemState {
     pub iterations: usize,
     pub length: f32,
 
-    pub color: Color32,
-    stroke: Stroke,
+    pub color_scheme: ColorScheme,
 
     lines: Vec<Line2D>,
 
@@ -40,8 +41,7 @@ impl Default for LSystemState {
             iterations: 1,
             length: 0.5,
 
-            color: colors::BLACK,
-            stroke: strokes::model_black(1.0),
+            color_scheme: ColorScheme::Standard,
 
             rules_set: HashMap::new(),
 
@@ -52,8 +52,6 @@ impl Default for LSystemState {
 
 impl LSystemState {
     pub fn shapes(&mut self, params: &CanvasParams) -> Vec<Shape> {
-        self.sync_stroke();
-
         if self.is_drawing_requested() {
             self.is_drawing_requested = false;
             self.lines = ModelBuilder::default()
@@ -63,7 +61,7 @@ impl LSystemState {
                 .with_rules(self.rules_set.clone())
                 .with_iterations(self.iterations)
                 .with_length(self.length)
-                .with_stroke(self.stroke)
+                .with_color_scheme(self.color_scheme)
                 .build()
                 .lines()
         }
@@ -147,8 +145,34 @@ impl LSystemState {
         *self = Default::default();
         self.rules = Vec::with_capacity(3);
     }
+}
 
-    fn sync_stroke(&mut self) {
-        self.stroke.color = self.color;
+#[derive(Copy, Clone, Display, Default, PartialEq)]
+pub enum ColorScheme {
+    #[strum(serialize = "Fixed")]
+    Fixed(Color32),
+
+    #[strum(serialize = "Random")]
+    Random,
+
+    #[strum(serialize = "Standard (Black)")]
+    #[default]
+    Standard,
+}
+
+impl ColorScheme {
+    pub fn get_color(&self) -> Color32 {
+        match self {
+            ColorScheme::Fixed(color) => *color,
+            ColorScheme::Random => {
+                let mut rng = rand::thread_rng();
+                Color32::from_rgb(
+                    rng.gen_range(0..=255),
+                    rng.gen_range(0..=255),
+                    rng.gen_range(0..=255),
+                )
+            },
+            ColorScheme::Standard => colors::BLACK,
+        }
     }
 }

@@ -1,3 +1,4 @@
+use crate::fractals::lsystem::state::ColorScheme;
 use crate::geometry::line2d::Line2D;
 use crate::geometry::point2d::Point2D;
 use crate::math::angle::Angle;
@@ -6,6 +7,7 @@ use std::collections::HashMap;
 
 pub const TERMINAL_SYMBOLS: [char; 5] = ['F', '+', '-', '[', ']'];
 pub const RULE_DELIMITER: &str = " -> ";
+const FRACTAL_STROKE_WIDTH: f32 = 1.0;
 
 pub struct Model {
     pub angle: Angle,
@@ -16,7 +18,7 @@ pub struct Model {
     pub iterations: usize,
     pub length: f32,
 
-    pub stroke: Stroke,
+    pub color_scheme: ColorScheme,
 }
 
 impl Model {
@@ -47,7 +49,11 @@ impl Model {
 
                     let end = Point2D::new(current_x, current_y);
 
-                    lines.push(Line2D::new(start, end, self.stroke));
+                    lines.push(Line2D::new(
+                        start,
+                        end,
+                        Stroke::new(FRACTAL_STROKE_WIDTH, self.color_scheme.get_color()),
+                    ));
                 },
                 '+' => {
                     current_angle =
@@ -105,7 +111,7 @@ pub struct ModelBuilder {
     pub iterations: usize,
     pub length: f32,
 
-    pub stroke: Stroke,
+    pub color_scheme: ColorScheme,
 }
 
 impl ModelBuilder {
@@ -139,8 +145,8 @@ impl ModelBuilder {
         self
     }
 
-    pub fn with_stroke(mut self, stroke: Stroke) -> Self {
-        self.stroke = stroke;
+    pub fn with_color_scheme(mut self, color_scheme: ColorScheme) -> Self {
+        self.color_scheme = color_scheme;
         self
     }
 
@@ -152,7 +158,7 @@ impl ModelBuilder {
             rules: self.rules,
             iterations: self.iterations,
             length: self.length,
-            stroke: self.stroke,
+            color_scheme: self.color_scheme,
         }
     }
 }

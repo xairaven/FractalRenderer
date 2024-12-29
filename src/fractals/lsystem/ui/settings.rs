@@ -1,14 +1,14 @@
 use crate::context::Context;
 use crate::fractals::lsystem::examples::Example;
 use crate::fractals::lsystem::serialization;
-use crate::fractals::lsystem::state::LSystemState;
+use crate::fractals::lsystem::state::{ColorScheme, LSystemState};
 use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::components::settings::SettingsBlock;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
-use egui::{vec2, Button, DragValue, Grid, RichText, Ui};
+use egui::{vec2, Button, Color32, DragValue, Grid, RichText, Ui};
 use indoc::indoc;
 
 #[derive(Default)]
@@ -95,16 +95,44 @@ impl SettingsBlock for LSystemSettingsBlock {
             };
             ui.end_row();
 
-            ui.label("Color:");
-            if egui::color_picker::color_edit_button_srgba(
-                ui,
-                &mut context.lsystem_state.color,
-                egui::color_picker::Alpha::Opaque,
-            )
-            .changed()
-            {
-                context.lsystem_state.reset_initialization();
+            ui.label("Color Scheme:");
+            let color = match &context.lsystem_state.color_scheme {
+                ColorScheme::Fixed(color) => *color,
+                _ => colors::BLACK,
             };
+            egui::ComboBox::from_id_salt("ColorScheme")
+                .selected_text(format!("{}", context.lsystem_state.color_scheme))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut context.lsystem_state.color_scheme,
+                        ColorScheme::Standard,
+                        ColorScheme::Standard.to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut context.lsystem_state.color_scheme,
+                        ColorScheme::Fixed(color),
+                        ColorScheme::Fixed(Color32::default()).to_string(),
+                    );
+                    ui.selectable_value(
+                        &mut context.lsystem_state.color_scheme,
+                        ColorScheme::Random,
+                        ColorScheme::Random.to_string(),
+                    );
+                });
+            ui.end_row();
+
+            if let ColorScheme::Fixed(color) = &mut context.lsystem_state.color_scheme {
+                ui.label("Color:");
+                if egui::color_picker::color_edit_button_srgba(
+                    ui,
+                    color,
+                    egui::color_picker::Alpha::Opaque,
+                )
+                .changed()
+                {
+                    context.lsystem_state.reset_initialization();
+                };
+            }
             ui.end_row();
         });
 
