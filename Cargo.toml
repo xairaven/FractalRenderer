@@ -14,11 +14,10 @@ eframe = { version = "0.30.0", default-features = false, features = [
     "default_fonts",          # Embed the default egui fonts.
     "glow",                   # Use the glow rendering backend. Alternative: "wgpu".
 ] }
-fern = "0.7.0"                # Logger.
+fern = "0.7.1"                # Logger.
 image = "0.25.5"              # Imaging library.
 indoc = "2.0.5"               # Indented document literals
 log = "0.4.22"                # Logging facade.
-nalgebra = "0.33.2"           # Matrices, linear algebra.
 rand = "0.8.5"                # Random number generators and other randomness functionality.
 rfd = "0.15.1"                # File Dialogs.
 serde = { version = "1.0.217", features = ["derive"] }

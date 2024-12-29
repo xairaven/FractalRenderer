@@ -30,7 +30,7 @@ impl Dot {
     pub fn to_shape(&self) -> Shape {
         debug_assert!(self.point.converted_to_screen);
 
-        Shape::circle_filled(self.point.to_pos2(), self.radius, self.color)
+        self.point.to_shape(self.radius, self.color)
     }
 }
 

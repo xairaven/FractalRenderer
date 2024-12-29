@@ -1,7 +1,6 @@
 use crate::ui::components::canvas::CanvasParams;
 use eframe::emath::Pos2;
-use eframe::epaint::{CircleShape, Color32, Shape, Stroke};
-use nalgebra::SMatrix;
+use eframe::epaint::{Color32, Shape};
 
 #[derive(Debug, Default, Clone)]
 pub struct Point2D {
@@ -29,10 +28,6 @@ impl Point2D {
         }
     }
 
-    pub fn to_vector(&self) -> SMatrix<f32, 1, 3> {
-        SMatrix::<f32, 1, 3>::new(self.x, self.y, 1.0)
-    }
-
     pub fn to_pos2(&self) -> Pos2 {
         Pos2::from([self.x, self.y])
     }
@@ -53,26 +48,11 @@ impl Point2D {
         Shape::circle_filled(self.to_pos2(), radius, color)
     }
 
-    pub fn to_dot(&self, radius: f32, fill: Color32, stroke: Stroke) -> Shape {
-        let mut shape = CircleShape::filled(self.to_pos2(), radius, fill);
-        shape.stroke = stroke;
-
-        Shape::Circle(shape)
-    }
-
     pub fn with_converted_checked(&self) -> Self {
         Self {
             x: self.x,
             y: self.y,
             converted_to_screen: true,
-        }
-    }
-
-    pub fn with_converted_unchecked(&self) -> Self {
-        Self {
-            x: self.x,
-            y: self.y,
-            converted_to_screen: false,
         }
     }
 }
