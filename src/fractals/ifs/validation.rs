@@ -71,16 +71,22 @@ impl ValidationError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::fractals::ifs::state::IfsState;
 
     #[test]
     fn valid_probability_range() {
-        let systems = vec![[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]];
-        assert!(probability_range(&systems).is_ok());
+        let mut state = IfsState::default();
+        state.systems = vec![[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5]];
+
+        let result = state.initialize();
+
+        assert!(result.is_ok());
     }
 
     #[test]
     fn negative_probability() {
-        let systems = vec![
+        let mut state = IfsState::default();
+        state.systems = vec![
             [
                 0.307692, -0.531469, -0.461538, -0.293706, 5.401953, 8.655175, 0.40,
             ],
@@ -91,12 +97,16 @@ mod tests {
                 0.000000, 0.545455, 0.692308, -0.195804, -4.893637, 7.269794, 0.45,
             ],
         ];
-        assert!(probability_range(&systems).is_err());
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadProbability(_))));
     }
 
     #[test]
     fn probability_greater_than_one() {
-        let systems = vec![
+        let mut state = IfsState::default();
+        state.systems = vec![
             [
                 0.307692, -0.531469, -0.461538, -0.293706, 5.401953, 8.655175, 0.40,
             ],
@@ -110,18 +120,26 @@ mod tests {
                 0.000000, 0.545455, 0.692308, -0.195804, -4.893637, 7.269794, 0.45,
             ],
         ];
-        assert!(probability_range(&systems).is_err());
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadProbability(_))));
     }
 
     #[test]
     fn no_systems() {
-        let systems = vec![];
-        assert!(systems_exist(&systems).is_err());
+        let mut state = IfsState::default();
+        state.systems = vec![];
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::NoSystems)));
     }
 
     #[test]
     fn sum_greater_than_one() {
-        let systems = vec![
+        let mut state = IfsState::default();
+        state.systems = vec![
             [
                 0.787879, -0.424242, 0.242424, 0.859848, 1.758647, 1.408065, 0.895652,
             ],
@@ -132,6 +150,9 @@ mod tests {
                 0.181818, -0.136364, 0.090909, 0.181818, 6.086107, 1.568035, 0.052174,
             ],
         ];
-        assert!(probability_sum(&systems).is_err());
+
+        let result = state.initialize();
+
+        assert!(matches!(result, Err(ValidationError::BadProbabilitySum(_))));
     }
 }

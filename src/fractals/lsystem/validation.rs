@@ -278,11 +278,7 @@ mod tests {
 
         let result = state.initialize();
 
-        let _message = String::new();
-        assert!(matches!(
-            result,
-            Err(ValidationError::WrongRuleSyntax(_message))
-        ));
+        assert!(matches!(result, Err(ValidationError::WrongRuleSyntax(_))));
     }
 
     #[test]
@@ -296,10 +292,9 @@ mod tests {
 
         let result = state.initialize();
 
-        let _message = String::new();
         assert!(matches!(
             result,
-            Err(ValidationError::RuleConstantIsEmpty(_message))
+            Err(ValidationError::RuleConstantIsEmpty(_))
         ));
     }
 
@@ -314,10 +309,9 @@ mod tests {
 
         let result = state.initialize();
 
-        let _message = String::new();
         assert!(matches!(
             result,
-            Err(ValidationError::RuleConditionIsEmpty(_message))
+            Err(ValidationError::RuleConditionIsEmpty(_))
         ));
     }
 
@@ -332,10 +326,9 @@ mod tests {
 
         let result = state.initialize();
 
-        let _message = String::new();
         assert!(matches!(
             result,
-            Err(ValidationError::NonAlphabetSymbolAxiom(_message))
+            Err(ValidationError::NonAlphabetSymbolAxiom(_))
         ));
     }
 
@@ -352,7 +345,7 @@ mod tests {
 
         assert!(matches!(
             result,
-            Err(ValidationError::NonAlphabetSymbolCondition(_message))
+            Err(ValidationError::NonAlphabetSymbolCondition(_))
         ));
     }
 }
