@@ -197,9 +197,9 @@ impl Settings {
     }
 
     fn reset_to_defaults(&mut self, context: &mut Context, canvas: &mut Canvas) {
-        canvas.params = Default::default();
-        context.grid = Default::default();
-        context.fractal_type = Default::default();
+        *canvas = Canvas::default();
+        *context = Context::default();
+        self.sub_window = None;
     }
 }
 
