@@ -18,7 +18,7 @@ pub trait SettingsBlock: SubWindowProvider {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            panel_width: 250.0,
+            panel_width: 275.0,
 
             sub_window: None,
         }
