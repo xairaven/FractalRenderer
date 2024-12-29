@@ -2,7 +2,7 @@ use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::validation::ValidationError;
 use serde::{Deserialize, Serialize};
 
-pub fn parse(json: String) -> serde_json::Result<IfsDto> {
+pub fn deserialize(json: String) -> serde_json::Result<IfsDto> {
     serde_json::from_str(&json)
 }
 

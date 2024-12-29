@@ -146,7 +146,7 @@ impl SubWindowProvider for IfsSettingsBlock {
 
 impl IfsSettingsBlock {
     fn load_state_from_json(&mut self, state: &mut IfsState, json: String) {
-        let dto = match serialization::parse(json) {
+        let dto = match serialization::deserialize(json) {
             Ok(value) => value,
             Err(err) => {
                 let message = format!("JSON Error: {}", err);
