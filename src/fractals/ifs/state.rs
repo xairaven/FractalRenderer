@@ -1,4 +1,4 @@
-use crate::fractals::ifs::model::Model;
+use crate::fractals::ifs::model::ModelBuilder;
 use crate::fractals::ifs::validation::ValidationError;
 use crate::fractals::ifs::{model, validation};
 use crate::geometry::dot::Dot;
@@ -43,15 +43,15 @@ impl Default for IfsState {
 }
 
 impl IfsState {
-    // TODO: Caching
     pub fn shapes(&mut self, params: &CanvasParams) -> Vec<Shape> {
         if self.is_drawing_requested() {
             self.is_drawing_requested = false;
-            self.dots = Model::default()
+            self.dots = ModelBuilder::default()
                 .with_systems(self.systems.clone())
                 .with_colors(self.colors.clone())
                 .with_iterations(self.iterations)
                 .with_radius(self.radius_cm)
+                .build()
                 .dots();
         }
 

@@ -15,18 +15,6 @@ pub struct Model {
     radius: f32,
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Self {
-            systems: vec![],
-            colors: vec![],
-
-            iterations: DEFAULT_ITERATIONS,
-            radius: DEFAULT_RADIUS,
-        }
-    }
-}
-
 impl Model {
     pub fn dots(&self) -> Vec<Dot> {
         debug_assert!(self.systems.len() == self.colors.len());
@@ -73,7 +61,29 @@ impl Model {
 
         dots
     }
+}
 
+pub struct ModelBuilder {
+    systems: Vec<[f32; 7]>,
+    colors: Vec<Color32>,
+
+    iterations: u32,
+    radius: f32,
+}
+
+impl Default for ModelBuilder {
+    fn default() -> Self {
+        Self {
+            systems: vec![],
+            colors: vec![],
+
+            iterations: DEFAULT_ITERATIONS,
+            radius: DEFAULT_RADIUS,
+        }
+    }
+}
+
+impl ModelBuilder {
     pub fn with_systems(mut self, systems: Vec<[f32; 7]>) -> Self {
         self.systems = systems;
         self
@@ -92,5 +102,14 @@ impl Model {
     pub fn with_radius(mut self, radius: f32) -> Self {
         self.radius = radius;
         self
+    }
+
+    pub fn build(self) -> Model {
+        Model {
+            systems: self.systems,
+            colors: self.colors,
+            iterations: self.iterations,
+            radius: self.radius,
+        }
     }
 }
