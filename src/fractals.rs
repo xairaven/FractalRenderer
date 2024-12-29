@@ -25,14 +25,12 @@ impl FractalType {
 pub mod ifs {
     pub mod examples;
     pub mod model;
+    pub mod serialization;
     pub mod state;
     pub mod system;
     pub mod ui {
         pub mod parameters;
         pub mod settings;
-    }
-    pub mod utilities {
-        pub mod json;
     }
     pub mod validation;
 }

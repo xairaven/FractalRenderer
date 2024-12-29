@@ -1,5 +1,5 @@
 use crate::context::Context;
-use crate::fractals::ifs::utilities::json;
+use crate::fractals::ifs::serialization;
 use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
@@ -142,7 +142,7 @@ impl Window for IfsParametersWindow {
 
                 ui.vertical_centered_justified(|ui| {
                     if ui.button("Save to File...").clicked() {
-                        let json = match json::serialize(&context.ifs_state) {
+                        let json = match serialization::serialize(&context.ifs_state) {
                             Ok(value) => value,
                             Err(err) => {
                                 let message = format!("JSON Error: {}", err);

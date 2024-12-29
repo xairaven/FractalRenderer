@@ -1,8 +1,8 @@
 use crate::context::Context;
 use crate::fractals::ifs::examples::Example;
+use crate::fractals::ifs::serialization;
 use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::ui::parameters::IfsParametersWindow;
-use crate::fractals::ifs::utilities;
 use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::components::settings::SettingsBlock;
@@ -146,7 +146,7 @@ impl SubWindowProvider for IfsSettingsBlock {
 
 impl IfsSettingsBlock {
     fn load_state_from_json(&mut self, state: &mut IfsState, json: String) {
-        let dto = match utilities::json::parse(json) {
+        let dto = match serialization::parse(json) {
             Ok(value) => value,
             Err(err) => {
                 let message = format!("JSON Error: {}", err);
