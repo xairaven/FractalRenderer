@@ -16,6 +16,7 @@ pub fn serialize(state: &IfsState) -> serde_json::Result<String> {
 
 #[derive(Serialize, Deserialize)]
 pub struct IfsDto {
+    #[serde(rename = "Systems")]
     systems: Vec<[f32; 7]>,
 }
 
