@@ -35,6 +35,7 @@ pub mod ifs {
     pub mod validation;
 }
 pub mod lsystem {
+    pub mod examples;
     pub mod model;
     pub mod serialization;
     pub mod state;

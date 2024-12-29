@@ -1,0 +1,10 @@
+{
+  "Axiom": "X",
+  "Angle": 60,
+  "Initial Angle": 0,
+  "Iterations": 3,
+  "Rules": [
+    "F -> FXF",
+    "X -> +FXF-FXF-FXF+"
+  ]
+}

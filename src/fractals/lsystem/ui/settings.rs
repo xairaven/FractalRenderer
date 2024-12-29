@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::fractals::lsystem::examples::Example;
 use crate::fractals::lsystem::serialization;
 use crate::fractals::lsystem::state::LSystemState;
 use crate::io;
@@ -175,6 +176,29 @@ impl SettingsBlock for LSystemSettingsBlock {
             if ui.button("Reset Settings").clicked() {
                 context.lsystem_state = Default::default();
             }
+        });
+
+        ui.add_space(10.0);
+
+        ui.collapsing("Load from Examples", |ui| {
+            ui.vertical_centered_justified(|ui| {
+                for example in Example::iter() {
+                    if ui.button(example.to_string()).clicked() {
+                        let json = match io::operations::load_from_path(example.path()) {
+                            Ok(json) => json,
+                            Err(err) => {
+                                context.ifs_state = Default::default();
+                                let message = format!("File Error: {}", err);
+                                self.sub_window =
+                                    Some(Box::new(MessageWindow::error(&message)));
+                                return;
+                            },
+                        };
+
+                        self.load_state_from_json(&mut context.lsystem_state, json);
+                    }
+                }
+            });
         });
 
         ui.add_space(10.0);

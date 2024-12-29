@@ -1,0 +1,10 @@
+{
+  "Axiom": "X",
+  "Angle": 20,
+  "Initial Angle": 90,
+  "Iterations": 5,
+  "Rules": [
+    "F -> FF",
+    "X -> F[+X]F[-X]+X"
+  ]
+}

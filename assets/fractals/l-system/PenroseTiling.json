@@ -1,0 +1,12 @@
+{
+  "Axiom": "+WF--XF---YF--ZF",
+  "Angle": 10,
+  "Initial Angle": 0,
+  "Iterations": 3,
+  "Rules": [
+    "W -> YF++ZF----XF[-YF----WF]++",
+    "X -> +YF--ZF[---WF--XF]+",
+    "Y -> -WF++XF[+++YF++ZF]-",
+    "Z -> --YF++++WF[+ZF++++XF]-XF"
+  ]
+}
