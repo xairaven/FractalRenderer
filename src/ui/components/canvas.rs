@@ -1,11 +1,12 @@
 use crate::context::Context;
 use crate::fractals::FractalType;
 use crate::geometry::point2d::Point2D;
+use crate::io::filter::FileFilter;
 use crate::io::screenshot::Screenshot;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
-use egui::{Frame, Painter, Response, Sense, Shape, Vec2};
+use egui::{Frame, Painter, Response, Sense, Shape};
 
 pub struct Canvas {
     pub params: CanvasParams,
@@ -80,6 +81,7 @@ impl Canvas {
 
                     if let Some(image) = image {
                         let screenshot = Screenshot::default()
+                            .with_file_filter(FileFilter::png())
                             .with_px_per_point(i.pixels_per_point)
                             .with_region(response.rect)
                             .with_image(image);
@@ -164,25 +166,6 @@ impl CanvasParams {
 
     pub fn value_px_to_cm(&self, value: f32) -> f32 {
         value / self.px_per_cm * self.unit_length
-    }
-
-    pub fn point_px_to_cm(&self, point: Point2D) -> Point2D {
-        debug_assert!(point.converted_to_screen);
-
-        let x =
-            (point.x * self.unit_length / self.px_per_cm) - self.center.x + self.offset.0;
-        let y =
-            (point.y * self.unit_length / self.px_per_cm) + self.center.y + self.offset.1;
-
-        Point2D::new(x, y).with_converted_unchecked()
-    }
-
-    pub fn vec2_px_to_cm(&self, vec: Vec2) -> Vec2 {
-        Vec2::new(self.value_px_to_cm(vec.x), -self.value_px_to_cm(vec.y))
-    }
-
-    pub fn vec2_cm_to_px(&self, vec: Vec2) -> Vec2 {
-        Vec2::new(self.value_cm_to_px(vec.x), -self.value_cm_to_px(vec.y))
     }
 
     pub fn update_offset_on_drag(&mut self, ui: &egui::Ui, response: &Response) {

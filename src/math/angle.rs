@@ -20,13 +20,6 @@ impl Angle {
         }
     }
 
-    pub fn from_radian(radian: f32) -> Self {
-        Self {
-            degree: radian * 180.0 / (std::f64::consts::PI as f32),
-            radian,
-        }
-    }
-
     pub fn degree(&self) -> f32 {
         self.degree
     }

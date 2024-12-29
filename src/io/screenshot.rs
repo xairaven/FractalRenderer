@@ -16,7 +16,7 @@ impl Default for Screenshot {
     fn default() -> Self {
         Self {
             region: Rect::from([Pos2::ZERO, Pos2::ZERO]),
-            file_filter: Some(FileFilter::png()),
+            file_filter: None,
             pixels_per_point: 0.0,
             image: Default::default(),
         }
