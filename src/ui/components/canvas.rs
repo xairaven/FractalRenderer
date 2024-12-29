@@ -35,7 +35,7 @@ impl Canvas {
         let mut grid = context.grid.shapes(&self.params);
         let mut fractal = match context.fractal_type {
             FractalType::Ifs => context.ifs_state.shapes(&self.params),
-            FractalType::LSystem => vec![],
+            FractalType::LSystem => context.lsystem_state.shapes(&self.params),
         };
 
         self.shapes.append(&mut grid);

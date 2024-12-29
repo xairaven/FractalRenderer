@@ -60,7 +60,7 @@ impl ValidationError {
     }
 
     pub fn window(&self) -> MessageWindow {
-        let mut message = format!("Validation error: {}", self);
+        let mut message = format!("Validation Error: {}", self);
         if let Some(additional_info) = self.additional_info() {
             message += &format!("\n\nAdditional Info:\n{}", additional_info);
         }

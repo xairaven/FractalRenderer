@@ -1,4 +1,5 @@
 use crate::fractals::ifs::state::IfsState;
+use crate::fractals::lsystem::state::LSystemState;
 use crate::fractals::FractalType;
 use crate::graphics::grid::Grid;
 
@@ -8,4 +9,5 @@ pub struct Context {
 
     pub fractal_type: FractalType,
     pub ifs_state: IfsState,
+    pub lsystem_state: LSystemState,
 }

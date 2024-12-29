@@ -1,4 +1,5 @@
 use crate::fractals::ifs::ui::settings::IfsSettingsBlock;
+use crate::fractals::lsystem::ui::settings::LSystemSettingsBlock;
 use crate::ui::components::settings::SettingsBlock;
 use strum_macros::Display;
 
@@ -16,7 +17,7 @@ impl FractalType {
     pub fn ui(&self) -> Box<dyn SettingsBlock> {
         match self {
             FractalType::Ifs => Box::new(IfsSettingsBlock::default()),
-            FractalType::LSystem => todo!(),
+            FractalType::LSystem => Box::new(LSystemSettingsBlock::default()),
         }
     }
 }
@@ -32,6 +33,14 @@ pub mod ifs {
     }
     pub mod utilities {
         pub mod json;
+    }
+    pub mod validation;
+}
+pub mod lsystem {
+    pub mod model;
+    pub mod state;
+    pub mod ui {
+        pub mod settings;
     }
     pub mod validation;
 }
