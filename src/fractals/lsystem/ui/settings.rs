@@ -1,8 +1,14 @@
 use crate::context::Context;
+use crate::fractals::lsystem::serialization;
+use crate::fractals::lsystem::state::LSystemState;
+use crate::io;
+use crate::io::filter::FileFilter;
 use crate::ui::components::settings::SettingsBlock;
 use crate::ui::styles::colors;
+use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{vec2, Button, DragValue, Grid, RichText, Ui};
+use indoc::indoc;
 
 #[derive(Default)]
 pub struct LSystemSettingsBlock {
@@ -170,10 +176,81 @@ impl SettingsBlock for LSystemSettingsBlock {
                 context.lsystem_state = Default::default();
             }
         });
+
+        ui.add_space(10.0);
+
+        ui.collapsing("File Settings", |ui| {
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("Load from File").clicked() {
+                    let json = match io::operations::load_with_file_pick(FileFilter::json()) {
+                        Some(Ok(json)) => json,
+                        Some(Err(err)) => {
+                            let message = format!("File Error: {}", err);
+                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            return;
+                        }
+                        None => { return },
+                    };
+
+                    self.load_state_from_json(&mut context.lsystem_state, json);
+                }
+                if ui.button("Save to File").clicked() {
+                    let json = match serialization::serialize(&context.lsystem_state) {
+                        Ok(value) => value,
+                        Err(err) => {
+                            let message = format!("JSON Error: {}", err);
+                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            return;
+                        }
+                    };
+
+                    if let Some(Err(err)) = io::operations::save_with_file_pick(json, FileFilter::json()) {
+                        let message = format!("File Error: {}", err);
+                        self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                    }
+                }
+                if ui.button("Help").clicked() {
+                    let message = indoc! {"
+                            File format: JSON.
+
+                            Example:
+
+                            {
+                                \"Axiom\": \"FX\",
+                                \"Angle\": 90,
+                                \"Initial Angle\": 0,
+                                \"Iterations\": 5,
+                                \"Rules\": [
+                                    \"X -> X+YF+\",
+                                    \"Y -> -FX-Y\"
+                                ]
+                            }
+
+                            You can find other examples in the 'assets/fractals/ifs' folder.
+                        "};
+                    self.sub_window = Some(Box::new(MessageWindow::help(message)));
+                }
+            });
+        });
     }
 }
 
-impl LSystemSettingsBlock {}
+impl LSystemSettingsBlock {
+    fn load_state_from_json(&mut self, state: &mut LSystemState, json: String) {
+        let dto = match serialization::deserialize(json) {
+            Ok(value) => value,
+            Err(err) => {
+                let message = format!("JSON Error: {}", err);
+                self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                return;
+            },
+        };
+
+        if let Err(err) = dto.load(state) {
+            self.sub_window = Some(Box::new(err.window()));
+        };
+    }
+}
 
 impl SubWindowProvider for LSystemSettingsBlock {
     fn sub_window(&mut self) -> Option<Box<dyn Window>> {

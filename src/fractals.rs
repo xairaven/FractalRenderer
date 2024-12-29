@@ -36,6 +36,7 @@ pub mod ifs {
 }
 pub mod lsystem {
     pub mod model;
+    pub mod serialization;
     pub mod state;
     pub mod ui {
         pub mod settings;
