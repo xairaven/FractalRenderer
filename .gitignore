@@ -1,3 +1,11 @@
+# Trunk output folder
+dist
+
+# Rust compile target directories:
+target
+target_ra
+target_wasm
+
 # Remove folder, that contains RustRover’s project specific settings files.
 .idea/
 
@@ -17,5 +25,4 @@ Cargo.lock
 *.pdb
 
 # Added by cargo
-
 /target
