@@ -1,8 +1,9 @@
 use crate::context::Context;
 use crate::ui::windows::{SubWindowProvider, Window};
-use egui::WidgetText;
+use egui::{Id, WidgetText};
 
 pub struct MessageWindow {
+    id: i64,
     name: String,
     message: WidgetText,
 
@@ -17,6 +18,7 @@ pub struct MessageWindow {
 impl Default for MessageWindow {
     fn default() -> Self {
         Self {
+            id: rand::random(),
             name: "Window".to_string(),
             message: WidgetText::default(),
 
@@ -33,6 +35,7 @@ impl Default for MessageWindow {
 impl Window for MessageWindow {
     fn show(&mut self, ui: &egui::Ui, _ctx: &mut Context) {
         egui::Window::new(&self.name)
+            .id(Id::new(self.id))
             .open(&mut self.is_open)
             .min_width(self.width)
             .min_height(self.height)
