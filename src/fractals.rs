@@ -1,6 +1,3 @@
-use crate::fractals::ifs::ui::settings::IfsSettingsBlock;
-use crate::fractals::lsystem::ui::settings::LSystemSettingsBlock;
-use crate::ui::components::settings::SettingsBlock;
 use strum_macros::Display;
 
 #[derive(Copy, Clone, Display, Default, PartialEq)]
@@ -11,15 +8,6 @@ pub enum FractalType {
 
     #[strum(serialize = "L-System")]
     LSystem,
-}
-
-impl FractalType {
-    pub fn ui(&self) -> Box<dyn SettingsBlock> {
-        match self {
-            FractalType::Ifs => Box::new(IfsSettingsBlock::default()),
-            FractalType::LSystem => Box::new(LSystemSettingsBlock::default()),
-        }
-    }
 }
 
 pub mod ifs {

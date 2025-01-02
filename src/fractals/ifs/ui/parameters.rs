@@ -4,7 +4,7 @@ use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
-use crate::ui::windows::{SubWindowProvider, Window};
+use crate::ui::windows::Window;
 use egui::{Button, DragValue, Grid, RichText};
 
 pub struct IfsParametersWindow {
@@ -15,8 +15,6 @@ pub struct IfsParametersWindow {
 
     width: f32,
     height: f32,
-
-    sub_window: Option<Box<dyn Window>>,
 }
 
 impl Default for IfsParametersWindow {
@@ -29,8 +27,6 @@ impl Default for IfsParametersWindow {
 
             width: 450.0,
             height: 250.0,
-
-            sub_window: None,
         }
     }
 }
@@ -146,14 +142,14 @@ impl Window for IfsParametersWindow {
                             Ok(value) => value,
                             Err(err) => {
                                 let message = format!("JSON Error: {}", err);
-                                self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                                let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                                 return;
                             }
                         };
 
                         if let Some(Err(err)) = io::operations::save_with_file_pick(json, FileFilter::json()) {
                             let message = format!("File Error: {}", err);
-                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                         }
                     }
                 });
@@ -173,7 +169,7 @@ impl Window for IfsParametersWindow {
                                     to_close = true;
                                 },
                                 Err(error) => {
-                                    self.sub_window = Some(Box::new(error.window()));
+                                    let _ = context.windows_sender.send(Box::new(error.window()));
                                 },
                             }
                         }
@@ -200,12 +196,6 @@ impl Window for IfsParametersWindow {
 
     fn is_closed(&self) -> bool {
         !self.is_open
-    }
-}
-
-impl SubWindowProvider for IfsParametersWindow {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        self.sub_window.take()
     }
 }
 

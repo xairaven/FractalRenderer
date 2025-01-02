@@ -1,5 +1,5 @@
 use crate::context::Context;
-use crate::ui::windows::{SubWindowProvider, Window};
+use crate::ui::windows::Window;
 use egui::{Id, WidgetText};
 
 pub struct MessageWindow {
@@ -47,12 +47,6 @@ impl Window for MessageWindow {
 
     fn is_closed(&self) -> bool {
         !self.is_open
-    }
-}
-
-impl SubWindowProvider for MessageWindow {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        None
     }
 }
 

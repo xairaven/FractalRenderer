@@ -5,15 +5,12 @@ use crate::io::filter::FileFilter;
 use crate::io::screenshot::Screenshot;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
-use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{Frame, Painter, Response, Sense, Shape};
 
 pub struct Canvas {
     pub params: CanvasParams,
 
     shapes: Vec<Shape>,
-
-    sub_window: Option<Box<dyn Window>>,
 }
 
 impl Default for Canvas {
@@ -22,8 +19,6 @@ impl Default for Canvas {
             params: Default::default(),
 
             shapes: Vec::with_capacity(1000),
-
-            sub_window: None,
         }
     }
 }
@@ -91,8 +86,9 @@ impl Canvas {
                                 "Error occurred while saving screenshot: {}",
                                 err
                             );
-                            self.sub_window =
-                                Some(Box::new(MessageWindow::error(&message)));
+                            let _ = context
+                                .windows_sender
+                                .send(Box::new(MessageWindow::error(&message)));
                         }
                     }
                 });
@@ -100,12 +96,6 @@ impl Canvas {
                 self.process(ui, context, &response);
                 self.draw(&painter);
             });
-    }
-}
-
-impl SubWindowProvider for Canvas {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        self.sub_window.take()
     }
 }
 

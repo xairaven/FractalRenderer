@@ -5,20 +5,18 @@ use crate::fractals::ifs::state::IfsState;
 use crate::fractals::ifs::ui::parameters::IfsParametersWindow;
 use crate::io;
 use crate::io::filter::FileFilter;
-use crate::ui::components::settings::SettingsBlock;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
-use crate::ui::windows::{SubWindowProvider, Window};
+use crate::ui::windows::Window;
+use crossbeam::channel::Sender;
 use egui::{Button, DragValue, Grid, RichText};
 use indoc::indoc;
 
 #[derive(Default)]
-pub struct IfsSettingsBlock {
-    sub_window: Option<Box<dyn Window>>,
-}
+pub struct IfsSettingsBlock;
 
-impl SettingsBlock for IfsSettingsBlock {
-    fn show(&mut self, ui: &mut egui::Ui, context: &mut Context) {
+impl IfsSettingsBlock {
+    pub fn show(&mut self, ui: &mut egui::Ui, context: &mut Context) {
         Grid::new("StatusGrid").num_columns(2).show(ui, |ui| {
             ui.label("Status: ");
             if context.ifs_state.is_initialized() {
@@ -54,7 +52,9 @@ impl SettingsBlock for IfsSettingsBlock {
 
         ui.vertical_centered_justified(|ui| {
             if ui.button("Parameters").clicked() {
-                self.sub_window = Some(Box::new(IfsParametersWindow::default()));
+                let _ = context
+                    .windows_sender
+                    .send(Box::new(IfsParametersWindow::default()));
             }
         });
 
@@ -85,13 +85,18 @@ impl SettingsBlock for IfsSettingsBlock {
                             Err(err) => {
                                 context.ifs_state = Default::default();
                                 let message = format!("File Error: {}", err);
-                                self.sub_window =
-                                    Some(Box::new(MessageWindow::error(&message)));
+                                let _ = context
+                                    .windows_sender
+                                    .send(Box::new(MessageWindow::error(&message)));
                                 return;
                             },
                         };
 
-                        self.load_state_from_json(&mut context.ifs_state, json);
+                        self.load_state_from_json(
+                            &context.windows_sender,
+                            &mut context.ifs_state,
+                            json,
+                        );
                     }
                 }
             });
@@ -106,13 +111,13 @@ impl SettingsBlock for IfsSettingsBlock {
                         Some(Ok(json)) => json,
                         Some(Err(err)) => {
                             let message = format!("File Error: {}", err);
-                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                             return;
                         }
                         None => { return },
                     };
 
-                    self.load_state_from_json(&mut context.ifs_state, json);
+                    self.load_state_from_json(&context.windows_sender, &mut context.ifs_state, json);
                 }
                 if ui.button("Help").clicked() {
                     let message = indoc! {"
@@ -131,32 +136,26 @@ impl SettingsBlock for IfsSettingsBlock {
 
                             You can find other examples in the 'assets/fractals/ifs' folder.
                         "};
-                    self.sub_window = Some(Box::new(MessageWindow::help(message)));
+                    let _ = context.windows_sender.send(Box::new(MessageWindow::help(message)));
                 }
             });
         });
     }
-}
 
-impl SubWindowProvider for IfsSettingsBlock {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        self.sub_window.take()
-    }
-}
-
-impl IfsSettingsBlock {
-    fn load_state_from_json(&mut self, state: &mut IfsState, json: String) {
+    fn load_state_from_json(
+        &mut self, sender: &Sender<Box<dyn Window>>, state: &mut IfsState, json: String,
+    ) {
         let dto = match serialization::deserialize(json) {
             Ok(value) => value,
             Err(err) => {
                 let message = format!("JSON Error: {}", err);
-                self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                let _ = sender.send(Box::new(MessageWindow::error(&message)));
                 return;
             },
         };
 
         if let Err(err) = dto.load(state) {
-            self.sub_window = Some(Box::new(err.window()));
+            let _ = sender.send(Box::new(err.window()));
         };
     }
 }

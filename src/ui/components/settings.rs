@@ -1,18 +1,16 @@
 use crate::context::Context;
+use crate::fractals::ifs::ui::settings::IfsSettingsBlock;
+use crate::fractals::lsystem::ui::settings::LSystemSettingsBlock;
 use crate::fractals::FractalType;
 use crate::ui::components::canvas;
 use crate::ui::components::canvas::Canvas;
-use crate::ui::windows::{SubWindowProvider, Window};
 use egui::{DragValue, Grid, RichText, UserData, ViewportCommand};
 
 pub struct Settings {
     pub panel_width: f32,
 
-    sub_window: Option<Box<dyn Window>>,
-}
-
-pub trait SettingsBlock: SubWindowProvider {
-    fn show(&mut self, ui: &mut egui::Ui, context: &mut Context);
+    ifs_settings: IfsSettingsBlock,
+    lsystem_settings: LSystemSettingsBlock,
 }
 
 impl Default for Settings {
@@ -20,7 +18,8 @@ impl Default for Settings {
         Self {
             panel_width: 275.0,
 
-            sub_window: None,
+            ifs_settings: Default::default(),
+            lsystem_settings: Default::default(),
         }
     }
 }
@@ -71,10 +70,9 @@ impl Settings {
 
             ui.add_space(10.0);
 
-            let mut component = context.fractal_type.ui();
-            component.show(ui, context);
-            if let Some(sub_window) = component.sub_window() {
-                self.sub_window = Some(sub_window);
+            match context.fractal_type {
+                FractalType::Ifs => self.ifs_settings.show(ui, context),
+                FractalType::LSystem => self.lsystem_settings.show(ui, context),
             }
 
             ui.separator();
@@ -199,12 +197,5 @@ impl Settings {
     fn reset_to_defaults(&mut self, context: &mut Context, canvas: &mut Canvas) {
         *canvas = Canvas::default();
         *context = Context::default();
-        self.sub_window = None;
-    }
-}
-
-impl SubWindowProvider for Settings {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        self.sub_window.take()
     }
 }

@@ -4,20 +4,18 @@ use crate::fractals::lsystem::serialization;
 use crate::fractals::lsystem::state::{ColorScheme, LSystemState};
 use crate::io;
 use crate::io::filter::FileFilter;
-use crate::ui::components::settings::SettingsBlock;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
-use crate::ui::windows::{SubWindowProvider, Window};
+use crate::ui::windows::Window;
+use crossbeam::channel::Sender;
 use egui::{vec2, Button, Color32, DragValue, Grid, RichText, Ui};
 use indoc::indoc;
 
 #[derive(Default)]
-pub struct LSystemSettingsBlock {
-    sub_window: Option<Box<dyn Window>>,
-}
+pub struct LSystemSettingsBlock;
 
-impl SettingsBlock for LSystemSettingsBlock {
-    fn show(&mut self, ui: &mut Ui, context: &mut Context) {
+impl LSystemSettingsBlock {
+    pub fn show(&mut self, ui: &mut Ui, context: &mut Context) {
         Grid::new("StatusGrid").num_columns(2).show(ui, |ui| {
             ui.label("Status: ");
             if context.lsystem_state.is_initialized() {
@@ -182,7 +180,7 @@ impl SettingsBlock for LSystemSettingsBlock {
                 .clicked()
             {
                 if let Err(err) = context.lsystem_state.initialize() {
-                    self.sub_window = Some(Box::new(err.window()));
+                    let _ = context.windows_sender.send(Box::new(err.window()));
                 }
             }
         });
@@ -217,13 +215,18 @@ impl SettingsBlock for LSystemSettingsBlock {
                             Err(err) => {
                                 context.ifs_state = Default::default();
                                 let message = format!("File Error: {}", err);
-                                self.sub_window =
-                                    Some(Box::new(MessageWindow::error(&message)));
+                                let _ = context
+                                    .windows_sender
+                                    .send(Box::new(MessageWindow::error(&message)));
                                 return;
                             },
                         };
 
-                        self.load_state_from_json(&mut context.lsystem_state, json);
+                        self.load_state_from_json(
+                            &context.windows_sender,
+                            &mut context.lsystem_state,
+                            json,
+                        );
                     }
                 }
             });
@@ -238,27 +241,27 @@ impl SettingsBlock for LSystemSettingsBlock {
                         Some(Ok(json)) => json,
                         Some(Err(err)) => {
                             let message = format!("File Error: {}", err);
-                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                             return;
                         }
                         None => { return },
                     };
 
-                    self.load_state_from_json(&mut context.lsystem_state, json);
+                    self.load_state_from_json(&context.windows_sender, &mut context.lsystem_state, json);
                 }
                 if ui.button("Save to File").clicked() {
                     let json = match serialization::serialize(&context.lsystem_state) {
                         Ok(value) => value,
                         Err(err) => {
                             let message = format!("JSON Error: {}", err);
-                            self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                             return;
                         }
                     };
 
                     if let Some(Err(err)) = io::operations::save_with_file_pick(json, FileFilter::json()) {
                         let message = format!("File Error: {}", err);
-                        self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                        let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                     }
                 }
                 if ui.button("Help").clicked() {
@@ -280,32 +283,27 @@ impl SettingsBlock for LSystemSettingsBlock {
 
                             You can find other examples in the 'assets/fractals/ifs' folder.
                         "};
-                    self.sub_window = Some(Box::new(MessageWindow::help(message)));
+                    let _ = context.windows_sender.send(Box::new(MessageWindow::help(message)));
                 }
             });
         });
     }
-}
 
-impl LSystemSettingsBlock {
-    fn load_state_from_json(&mut self, state: &mut LSystemState, json: String) {
+    fn load_state_from_json(
+        &mut self, sender: &Sender<Box<dyn Window>>, state: &mut LSystemState,
+        json: String,
+    ) {
         let dto = match serialization::deserialize(json) {
             Ok(value) => value,
             Err(err) => {
                 let message = format!("JSON Error: {}", err);
-                self.sub_window = Some(Box::new(MessageWindow::error(&message)));
+                let _ = sender.send(Box::new(MessageWindow::error(&message)));
                 return;
             },
         };
 
         if let Err(err) = dto.load(state) {
-            self.sub_window = Some(Box::new(err.window()));
+            let _ = sender.send(Box::new(err.window()));
         };
-    }
-}
-
-impl SubWindowProvider for LSystemSettingsBlock {
-    fn sub_window(&mut self) -> Option<Box<dyn Window>> {
-        self.sub_window.take()
     }
 }
