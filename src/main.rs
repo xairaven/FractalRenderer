@@ -43,6 +43,7 @@ mod context;
 mod fractals;
 mod graphics {
     pub mod grid;
+    pub mod resolution;
 }
 mod geometry {
     pub mod dot;

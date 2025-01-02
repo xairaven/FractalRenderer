@@ -7,6 +7,7 @@ use crate::ui::components::canvas::Canvas;
 use egui::{DragValue, Grid, RichText, UserData, ViewportCommand};
 
 pub struct Settings {
+    pub is_displayed: bool,
     pub panel_width: f32,
 
     ifs_settings: IfsSettingsBlock,
@@ -16,6 +17,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            is_displayed: true,
             panel_width: 275.0,
 
             ifs_settings: Default::default(),

@@ -1,4 +1,5 @@
 use crate::context::Context;
+use crate::graphics::resolution::Resolution;
 use crate::ui::components::canvas::Canvas;
 use crate::ui::components::settings::Settings;
 use crate::ui::windows;
@@ -7,6 +8,8 @@ use egui::ThemePreference;
 
 #[derive(Default)]
 pub struct App {
+    pub size: Resolution,
+
     pub canvas: Canvas,
     pub context: Context,
     pub settings: Settings,
@@ -27,7 +30,15 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            windows::main::show(self, ui, ctx);
+            let (width, height) = ui.response().rect.size().into();
+            self.size = Resolution::from(width, height);
+
+            let proportion = self.size.width / self.size.height;
+            if !proportion.is_finite() || proportion > 1.0 {
+                windows::main::show_normal(self, ui, ctx);
+            } else {
+                windows::main::show_phone(self, ui, ctx);
+            }
         });
     }
 }
