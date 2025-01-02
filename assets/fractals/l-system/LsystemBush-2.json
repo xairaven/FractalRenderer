@@ -1,0 +1,10 @@
+{
+  "Axiom": "Y",
+  "Angle": 25.7,
+  "Initial Angle": 90,
+  "Iterations": 5,
+  "Rules": [
+    "X -> X[-FFF][+FFF]FX",
+    "Y -> YFX[+Y][-Y]"
+  ]
+}
