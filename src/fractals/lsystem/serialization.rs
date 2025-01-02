@@ -46,6 +46,10 @@ impl LSystemDto {
         state.iterations = self.iterations;
         state.rules = self.rules;
 
-        state.initialize()
+        let result = state.initialize();
+        if result.is_err() {
+            *state = Default::default();
+        }
+        result
     }
 }

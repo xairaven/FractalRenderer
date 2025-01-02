@@ -7,13 +7,24 @@ use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
-use crate::ui::windows::Window;
-use crossbeam::channel::Sender;
+use crossbeam::channel::{unbounded, Receiver, Sender};
 use egui::{Button, DragValue, Grid, RichText};
 use indoc::indoc;
 
-#[derive(Default)]
-pub struct IfsSettingsBlock;
+pub struct IfsSettingsBlock {
+    json_sender: Sender<String>,
+    json_receiver: Receiver<String>,
+}
+
+impl Default for IfsSettingsBlock {
+    fn default() -> Self {
+        let (sender, receiver) = unbounded::<String>();
+        Self {
+            json_sender: sender,
+            json_receiver: receiver,
+        }
+    }
+}
 
 impl IfsSettingsBlock {
     pub fn show(&mut self, ui: &mut egui::Ui, context: &mut Context) {
@@ -76,14 +87,23 @@ impl IfsSettingsBlock {
 
         ui.add_space(10.0);
 
+        // Deserializing from Json, if needed
+        if let Ok(json) = self.json_receiver.try_recv() {
+            let result = self.deserialize_state(&mut context.ifs_state, json);
+            if let Err(err) = result {
+                let _ = context
+                    .windows_sender
+                    .send(Box::new(MessageWindow::error(&err)));
+            }
+        }
+
         ui.collapsing("Load from Example", |ui| {
             ui.vertical_centered_justified(|ui| {
                 for example in Example::iter() {
                     if ui.button(example.to_string()).clicked() {
-                        let json = match io::ops_native::load_from_path(example.path()) {
+                        let json = match example.contents() {
                             Ok(json) => json,
                             Err(err) => {
-                                context.ifs_state = Default::default();
                                 let message = format!("File Error: {}", err);
                                 let _ = context
                                     .windows_sender
@@ -92,11 +112,7 @@ impl IfsSettingsBlock {
                             },
                         };
 
-                        self.load_state_from_json(
-                            &context.windows_sender,
-                            &mut context.ifs_state,
-                            json,
-                        );
+                        let _ = self.json_sender.send(json);
                     }
                 }
             });
@@ -107,17 +123,38 @@ impl IfsSettingsBlock {
         ui.collapsing("Load from File", |ui| {
             ui.vertical_centered_justified(|ui| {
                 if ui.button("Open File...").clicked() {
-                    let json = match io::ops_native::load_with_file_pick(FileFilter::json()) {
-                        Some(Ok(json)) => json,
-                        Some(Err(err)) => {
-                            let message = format!("File Error: {}", err);
-                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
-                            return;
-                        }
-                        None => { return },
-                    };
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        let json = match io::ops_native::load_with_file_pick(FileFilter::json()) {
+                            Some(Ok(json)) => json,
+                            Some(Err(err)) => {
+                                let message = format!("File Error: {}", err);
+                                let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
+                                return;
+                            }
+                            None => { return },
+                        };
 
-                    self.load_state_from_json(&context.windows_sender, &mut context.ifs_state, json);
+                        let _ = self.json_sender.send(json);
+                    }
+
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        let json_sender = self.json_sender.clone();
+                        let windows_sender = context.windows_sender.clone();
+                        wasm_bindgen_futures::spawn_local(async move {
+                            let json = match io::ops_wasm::load_with_file_pick(FileFilter::json()).await {
+                                Some(Ok(json)) => json,
+                                Some(Err(err)) => {
+                                    let message = format!("File Error: {}", err);
+                                    let _ = windows_sender.send(Box::new(MessageWindow::error(&message)));
+                                    return;
+                                }
+                                None => { return },
+                            };
+                            let _ = json_sender.send(json);
+                        });
+                    }
                 }
                 if ui.button("Help").clicked() {
                     let message = indoc! {"
@@ -142,20 +179,20 @@ impl IfsSettingsBlock {
         });
     }
 
-    fn load_state_from_json(
-        &mut self, sender: &Sender<Box<dyn Window>>, state: &mut IfsState, json: String,
-    ) {
+    fn deserialize_state(
+        &mut self, state: &mut IfsState, json: String,
+    ) -> Result<(), String> {
         let dto = match serialization::deserialize(json) {
             Ok(value) => value,
             Err(err) => {
-                let message = format!("JSON Error: {}", err);
-                let _ = sender.send(Box::new(MessageWindow::error(&message)));
-                return;
+                return Err(format!("JSON Error: {}", err));
             },
         };
 
         if let Err(err) = dto.load(state) {
-            let _ = sender.send(Box::new(err.window()));
+            return Err(err.to_string());
         };
+
+        Ok(())
     }
 }

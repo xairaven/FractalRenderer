@@ -1,5 +1,9 @@
+use include_dir::{include_dir, Dir};
 use std::path::PathBuf;
 use strum_macros::Display;
+use thiserror::Error;
+
+static IFS_EXAMPLES_DIR: Dir<'_> = include_dir!("./assets/fractals/ifs/");
 
 #[derive(Copy, Clone, Display)]
 pub enum Example {
@@ -43,21 +47,30 @@ pub enum Example {
 impl Example {
     pub fn path(&self) -> PathBuf {
         match self {
-            Example::BarnsleyFern => {
-                PathBuf::from(r"assets/fractals/ifs/Barnsleys-Fern.json")
-            },
-            Example::Binary => PathBuf::from(r"assets/fractals/ifs/Binary.json"),
-            Example::Coral => PathBuf::from(r"assets/fractals/ifs/Coral.json"),
-            Example::Crystal => PathBuf::from(r"assets/fractals/ifs/Crystal.json"),
-            Example::Dragon => PathBuf::from(r"assets/fractals/ifs/Dragon.json"),
-            Example::Floor => PathBuf::from(r"assets/fractals/ifs/Floor.json"),
-            Example::Koch3 => PathBuf::from(r"assets/fractals/ifs/Koch-3.json"),
-            Example::Spiral => PathBuf::from(r"assets/fractals/ifs/Spiral.json"),
-            Example::Tree => PathBuf::from(r"assets/fractals/ifs/Tree.json"),
-            Example::Triangle => PathBuf::from(r"assets/fractals/ifs/Triangle.json"),
-            Example::Whirlpool => PathBuf::from(r"assets/fractals/ifs/Whirlpool.json"),
-            Example::Zigzag => PathBuf::from(r"assets/fractals/ifs/Zigzag.json"),
+            Example::BarnsleyFern => PathBuf::from(r"Barnsleys-Fern.json"),
+            Example::Binary => PathBuf::from(r"Binary.json"),
+            Example::Coral => PathBuf::from(r"Coral.json"),
+            Example::Crystal => PathBuf::from(r"Crystal.json"),
+            Example::Dragon => PathBuf::from(r"Dragon.json"),
+            Example::Floor => PathBuf::from(r"Floor.json"),
+            Example::Koch3 => PathBuf::from(r"Koch-3.json"),
+            Example::Spiral => PathBuf::from(r"Spiral.json"),
+            Example::Tree => PathBuf::from(r"Tree.json"),
+            Example::Triangle => PathBuf::from(r"Triangle.json"),
+            Example::Whirlpool => PathBuf::from(r"Whirlpool.json"),
+            Example::Zigzag => PathBuf::from(r"Zigzag.json"),
         }
+    }
+
+    pub fn contents(&self) -> Result<String, ExampleLoadingError> {
+        let file = IFS_EXAMPLES_DIR
+            .get_file(self.path())
+            .ok_or(ExampleLoadingError::FileNotFound)?;
+
+        Ok(file
+            .contents_utf8()
+            .ok_or(ExampleLoadingError::NonValidUtf8)?
+            .to_string())
     }
 
     pub fn iter() -> impl Iterator<Item = Self> {
@@ -77,4 +90,13 @@ impl Example {
         ]
         .into_iter()
     }
+}
+
+#[derive(Error, Debug)]
+pub enum ExampleLoadingError {
+    #[error("File not found.")]
+    FileNotFound,
+
+    #[error("Not valid UTF-8 (or file is empty)")]
+    NonValidUtf8,
 }

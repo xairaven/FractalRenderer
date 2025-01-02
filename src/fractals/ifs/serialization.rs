@@ -29,6 +29,10 @@ impl IfsDto {
             state.push_system(system);
         }
 
-        state.initialize()
+        let result = state.initialize();
+        if result.is_err() {
+            *state = Default::default();
+        }
+        result
     }
 }

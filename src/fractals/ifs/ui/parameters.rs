@@ -147,9 +147,23 @@ impl Window for IfsParametersWindow {
                             }
                         };
 
-                        if let Some(Err(err)) = io::ops_native::save_with_file_pick(json, FileFilter::json()) {
-                            let message = format!("File Error: {}", err);
-                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            if let Some(Err(err)) = io::ops_native::save_with_file_pick(json, FileFilter::json()) {
+                                let message = format!("File Error: {}", err);
+                                let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
+                            }
+                        }
+
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            let windows_sender = context.windows_sender.clone();
+                            wasm_bindgen_futures::spawn_local(async move {
+                                if let Some(Err(err)) = io::ops_wasm::save_with_file_pick(json, FileFilter::json()).await {
+                                    let message = format!("File Error: {}", err);
+                                    let _ = windows_sender.send(Box::new(MessageWindow::error(&message)));
+                                }
+                            });
                         }
                     }
                 });

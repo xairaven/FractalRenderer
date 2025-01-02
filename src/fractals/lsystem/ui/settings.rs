@@ -6,13 +6,24 @@ use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
 use crate::ui::windows::message::MessageWindow;
-use crate::ui::windows::Window;
-use crossbeam::channel::Sender;
+use crossbeam::channel::{unbounded, Receiver, Sender};
 use egui::{vec2, Button, Color32, DragValue, Grid, RichText, Ui};
 use indoc::indoc;
 
-#[derive(Default)]
-pub struct LSystemSettingsBlock;
+pub struct LSystemSettingsBlock {
+    json_sender: Sender<String>,
+    json_receiver: Receiver<String>,
+}
+
+impl Default for LSystemSettingsBlock {
+    fn default() -> Self {
+        let (sender, receiver) = unbounded::<String>();
+        Self {
+            json_sender: sender,
+            json_receiver: receiver,
+        }
+    }
+}
 
 impl LSystemSettingsBlock {
     pub fn show(&mut self, ui: &mut Ui, context: &mut Context) {
@@ -206,14 +217,23 @@ impl LSystemSettingsBlock {
 
         ui.add_space(10.0);
 
+        // Deserializing from Json, if needed
+        if let Ok(json) = self.json_receiver.try_recv() {
+            let result = self.deserialize_state(&mut context.lsystem_state, json);
+            if let Err(err) = result {
+                let _ = context
+                    .windows_sender
+                    .send(Box::new(MessageWindow::error(&err)));
+            }
+        }
+
         ui.collapsing("Load from Examples", |ui| {
             ui.vertical_centered_justified(|ui| {
                 for example in Example::iter() {
                     if ui.button(example.to_string()).clicked() {
-                        let json = match io::ops_native::load_from_path(example.path()) {
+                        let json = match example.contents() {
                             Ok(json) => json,
                             Err(err) => {
-                                context.ifs_state = Default::default();
                                 let message = format!("File Error: {}", err);
                                 let _ = context
                                     .windows_sender
@@ -222,11 +242,7 @@ impl LSystemSettingsBlock {
                             },
                         };
 
-                        self.load_state_from_json(
-                            &context.windows_sender,
-                            &mut context.lsystem_state,
-                            json,
-                        );
+                        let _ = self.json_sender.send(json);
                     }
                 }
             });
@@ -237,17 +253,38 @@ impl LSystemSettingsBlock {
         ui.collapsing("File Settings", |ui| {
             ui.vertical_centered_justified(|ui| {
                 if ui.button("Load from File").clicked() {
-                    let json = match io::ops_native::load_with_file_pick(FileFilter::json()) {
-                        Some(Ok(json)) => json,
-                        Some(Err(err)) => {
-                            let message = format!("File Error: {}", err);
-                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
-                            return;
-                        }
-                        None => { return },
-                    };
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        let json = match io::ops_native::load_with_file_pick(FileFilter::json()) {
+                            Some(Ok(json)) => json,
+                            Some(Err(err)) => {
+                                let message = format!("File Error: {}", err);
+                                let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
+                                return;
+                            }
+                            None => { return },
+                        };
 
-                    self.load_state_from_json(&context.windows_sender, &mut context.lsystem_state, json);
+                        let _ = self.json_sender.send(json);
+                    }
+
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        let json_sender = self.json_sender.clone();
+                        let windows_sender = context.windows_sender.clone();
+                        wasm_bindgen_futures::spawn_local(async move {
+                            let json = match io::ops_wasm::load_with_file_pick(FileFilter::json()).await {
+                                Some(Ok(json)) => json,
+                                Some(Err(err)) => {
+                                    let message = format!("File Error: {}", err);
+                                    let _ = windows_sender.send(Box::new(MessageWindow::error(&message)));
+                                    return;
+                                }
+                                None => { return },
+                            };
+                            let _ = json_sender.send(json);
+                        });
+                    }
                 }
                 if ui.button("Save to File").clicked() {
                     let json = match serialization::serialize(&context.lsystem_state) {
@@ -259,9 +296,23 @@ impl LSystemSettingsBlock {
                         }
                     };
 
-                    if let Some(Err(err)) = io::ops_native::save_with_file_pick(json, FileFilter::json()) {
-                        let message = format!("File Error: {}", err);
-                        let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        if let Some(Err(err)) = io::ops_native::save_with_file_pick(json, FileFilter::json()) {
+                            let message = format!("File Error: {}", err);
+                            let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
+                        }
+                    }
+
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        let windows_sender = context.windows_sender.clone();
+                        wasm_bindgen_futures::spawn_local(async move {
+                            if let Some(Err(err)) = io::ops_wasm::save_with_file_pick(json, FileFilter::json()).await {
+                                let message = format!("File Error: {}", err);
+                                let _ = windows_sender.send(Box::new(MessageWindow::error(&message)));
+                            }
+                        });
                     }
                 }
                 if ui.button("Help").clicked() {
@@ -289,21 +340,20 @@ impl LSystemSettingsBlock {
         });
     }
 
-    fn load_state_from_json(
-        &mut self, sender: &Sender<Box<dyn Window>>, state: &mut LSystemState,
-        json: String,
-    ) {
+    fn deserialize_state(
+        &mut self, state: &mut LSystemState, json: String,
+    ) -> Result<(), String> {
         let dto = match serialization::deserialize(json) {
             Ok(value) => value,
             Err(err) => {
-                let message = format!("JSON Error: {}", err);
-                let _ = sender.send(Box::new(MessageWindow::error(&message)));
-                return;
+                return Err(format!("JSON Error: {}", err));
             },
         };
 
         if let Err(err) = dto.load(state) {
-            let _ = sender.send(Box::new(err.window()));
+            return Err(err.to_string());
         };
+
+        Ok(())
     }
 }
