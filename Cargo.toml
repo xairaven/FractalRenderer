@@ -9,6 +9,7 @@ repository = "https://github.com/xairaven/FractalRenderer"
 
 [dependencies]
 chrono = "0.4.39"             # Logging purposes.
+crossbeam = "0.8.4"           # Tools for concurrent programming
 dotenvy = "0.15.7"            # .env file processing.
 egui = "0.30.0"               # GUI Library.
 eframe = { version = "0.30.0", default-features = false, features = [
