@@ -93,7 +93,7 @@ impl Screenshot {
         if let Some(filter) = &self.file_filter {
             file_dialog = file_dialog.add_filter(&filter.name, &filter.file_extensions);
 
-            let name = io::ops_native::generate_filename(6, &filter.file_extensions);
+            let name = io::filename::generate(6, &filter.file_extensions);
             file_dialog = file_dialog.set_file_name(&name);
         }
 
