@@ -1,9 +1,9 @@
-var cacheName = 'egui-template-pwa';
+var cacheName = 'fractal-renderer-pwa';
 var filesToCache = [
     './',
     './index.html',
     './fractal-renderer.js',
-    './fractal-renderer.wasm',
+    './fractal-renderer_bg.wasm',
 ];
 
 /* Start the service worker and cache all of the app's content */
