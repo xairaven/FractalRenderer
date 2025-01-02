@@ -3,8 +3,8 @@ use crate::fractals::ifs::validation::ValidationError;
 use crate::fractals::ifs::{model, validation};
 use crate::geometry::dot::Dot;
 use crate::ui::components::canvas::CanvasParams;
-use crate::ui::styles::colors;
-use egui::{Color32, Shape};
+use crate::ui::styles::colors::ColorScheme;
+use egui::Shape;
 
 pub struct IfsState {
     is_initialized: bool,
@@ -15,7 +15,7 @@ pub struct IfsState {
     pub systems: Vec<[f32; 7]>,
 
     pub is_coloring_enabled: bool,
-    pub colors: Vec<Color32>,
+    pub color_schemas: Vec<ColorScheme>,
 
     pub iterations: u32,
     pub radius_cm: f32,
@@ -34,7 +34,7 @@ impl Default for IfsState {
             systems: vec![DEFAULT_SYSTEM],
 
             is_coloring_enabled: false,
-            colors: vec![colors::BLACK],
+            color_schemas: vec![ColorScheme::Standard],
 
             iterations: model::DEFAULT_ITERATIONS,
             radius_cm: model::DEFAULT_RADIUS,
@@ -48,7 +48,7 @@ impl IfsState {
             self.is_drawing_requested = false;
             self.dots = ModelBuilder::default()
                 .with_systems(self.systems.clone())
-                .with_colors(self.colors.clone())
+                .with_color_schemas(self.color_schemas.clone())
                 .with_iterations(self.iterations)
                 .with_radius(self.radius_cm)
                 .build()
@@ -92,25 +92,25 @@ impl IfsState {
         self.reset_initialization();
 
         self.systems.push(DEFAULT_SYSTEM);
-        self.colors.push(colors::BLACK);
+        self.color_schemas.push(ColorScheme::Standard);
     }
 
     pub fn push_system(&mut self, system: [f32; 7]) {
         self.systems.push(system);
-        self.colors.push(colors::BLACK);
+        self.color_schemas.push(ColorScheme::Standard);
     }
 
     pub fn remove_system(&mut self, index: usize) {
-        debug_assert!(self.systems.len() == self.colors.len());
+        debug_assert!(self.systems.len() == self.color_schemas.len());
 
         self.reset_initialization();
 
         self.systems.remove(index);
-        self.colors.remove(index);
+        self.color_schemas.remove(index);
     }
 
     pub fn empty_systems(&mut self) {
         self.systems = vec![];
-        self.colors = vec![];
+        self.color_schemas = vec![];
     }
 }

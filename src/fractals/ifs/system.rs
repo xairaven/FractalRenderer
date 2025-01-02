@@ -1,7 +1,6 @@
 use crate::geometry::dot::{Dot, DotBuilder};
 use crate::geometry::point2d::Point2D;
-use crate::ui::styles::colors;
-use egui::Color32;
+use crate::ui::styles::colors::ColorScheme;
 
 pub struct EquationSystem {
     a: f32,
@@ -12,7 +11,7 @@ pub struct EquationSystem {
     f: f32,
     p: f32,
 
-    color: Color32,
+    color_scheme: ColorScheme,
     radius: f32,
 }
 
@@ -27,13 +26,13 @@ impl EquationSystem {
             f: coefficients[5],
             p: coefficients[6],
 
-            color: colors::BLACK,
+            color_scheme: ColorScheme::Standard,
             radius,
         }
     }
 
-    pub fn with_color(mut self, color: Color32) -> Self {
-        self.color = color;
+    pub fn with_color_scheme(mut self, color_scheme: ColorScheme) -> Self {
+        self.color_scheme = color_scheme;
         self
     }
 
@@ -49,7 +48,7 @@ impl EquationSystem {
 
         DotBuilder::default()
             .with_center(Point2D::new(x, y))
-            .with_color(self.color)
+            .with_color(self.color_scheme.get_color())
             .with_radius_centimeters(self.radius)
             .build()
     }

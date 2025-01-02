@@ -1,10 +1,11 @@
 use crate::context::Context;
 use crate::fractals::lsystem::examples::Example;
 use crate::fractals::lsystem::serialization;
-use crate::fractals::lsystem::state::{ColorScheme, LSystemState};
+use crate::fractals::lsystem::state::LSystemState;
 use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
+use crate::ui::styles::colors::ColorScheme;
 use crate::ui::windows::message::MessageWindow;
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use egui::{vec2, Button, Color32, DragValue, Grid, RichText, Ui};

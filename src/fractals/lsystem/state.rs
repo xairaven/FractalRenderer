@@ -3,12 +3,9 @@ use crate::fractals::lsystem::validation;
 use crate::fractals::lsystem::validation::ValidationError;
 use crate::geometry::line2d::Line2D;
 use crate::ui::components::canvas::CanvasParams;
-use crate::ui::styles::colors;
+use crate::ui::styles::colors::ColorScheme;
 use eframe::epaint::Shape;
-use egui::Color32;
-use rand::Rng;
 use std::collections::HashMap;
-use strum_macros::Display;
 
 pub struct LSystemState {
     is_initialized: bool,
@@ -144,35 +141,5 @@ impl LSystemState {
     pub fn reset_with_empty_rules(&mut self) {
         *self = Default::default();
         self.rules = Vec::with_capacity(3);
-    }
-}
-
-#[derive(Copy, Clone, Display, Default, PartialEq)]
-pub enum ColorScheme {
-    #[strum(serialize = "Fixed")]
-    Fixed(Color32),
-
-    #[strum(serialize = "Random")]
-    Random,
-
-    #[strum(serialize = "Standard (Black)")]
-    #[default]
-    Standard,
-}
-
-impl ColorScheme {
-    pub fn get_color(&self) -> Color32 {
-        match self {
-            ColorScheme::Fixed(color) => *color,
-            ColorScheme::Random => {
-                let mut rng = rand::thread_rng();
-                Color32::from_rgb(
-                    rng.gen_range(0..=255),
-                    rng.gen_range(0..=255),
-                    rng.gen_range(0..=255),
-                )
-            },
-            ColorScheme::Standard => colors::BLACK,
-        }
     }
 }

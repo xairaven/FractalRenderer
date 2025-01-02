@@ -1,6 +1,6 @@
 use crate::fractals::ifs::system::EquationSystem;
 use crate::geometry::dot::{Dot, DotBuilder};
-use eframe::epaint::Color32;
+use crate::ui::styles::colors::ColorScheme;
 use rand::distributions::{Distribution, WeightedIndex};
 use rand::thread_rng;
 
@@ -9,7 +9,7 @@ pub const DEFAULT_RADIUS: f32 = 0.025;
 
 pub struct Model {
     systems: Vec<[f32; 7]>,
-    colors: Vec<Color32>,
+    color_schemas: Vec<ColorScheme>,
 
     iterations: u32,
     radius: f32,
@@ -17,13 +17,13 @@ pub struct Model {
 
 impl Model {
     pub fn dots(&self) -> Vec<Dot> {
-        debug_assert!(self.systems.len() == self.colors.len());
+        debug_assert!(self.systems.len() == self.color_schemas.len());
 
         let mut equations: Vec<EquationSystem> = Vec::new();
         for (index, parameters) in self.systems.iter().enumerate() {
             equations.push(
                 EquationSystem::new(*parameters, self.radius)
-                    .with_color(self.colors[index]),
+                    .with_color_scheme(self.color_schemas[index]),
             );
         }
 
@@ -65,7 +65,7 @@ impl Model {
 
 pub struct ModelBuilder {
     systems: Vec<[f32; 7]>,
-    colors: Vec<Color32>,
+    color_schemas: Vec<ColorScheme>,
 
     iterations: u32,
     radius: f32,
@@ -75,7 +75,7 @@ impl Default for ModelBuilder {
     fn default() -> Self {
         Self {
             systems: vec![],
-            colors: vec![],
+            color_schemas: vec![],
 
             iterations: DEFAULT_ITERATIONS,
             radius: DEFAULT_RADIUS,
@@ -89,8 +89,8 @@ impl ModelBuilder {
         self
     }
 
-    pub fn with_colors(mut self, colors: Vec<Color32>) -> Self {
-        self.colors = colors;
+    pub fn with_color_schemas(mut self, color_schemas: Vec<ColorScheme>) -> Self {
+        self.color_schemas = color_schemas;
         self
     }
 
@@ -107,7 +107,7 @@ impl ModelBuilder {
     pub fn build(self) -> Model {
         Model {
             systems: self.systems,
-            colors: self.colors,
+            color_schemas: self.color_schemas,
             iterations: self.iterations,
             radius: self.radius,
         }

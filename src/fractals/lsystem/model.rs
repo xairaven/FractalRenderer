@@ -1,7 +1,7 @@
-use crate::fractals::lsystem::state::ColorScheme;
 use crate::geometry::line2d::Line2D;
 use crate::geometry::point2d::Point2D;
 use crate::math::angle::Angle;
+use crate::ui::styles::colors::ColorScheme;
 use egui::Stroke;
 use std::collections::HashMap;
 

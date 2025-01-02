@@ -3,8 +3,10 @@ use crate::fractals::ifs::serialization;
 use crate::io;
 use crate::io::filter::FileFilter;
 use crate::ui::styles::colors;
+use crate::ui::styles::colors::ColorScheme;
 use crate::ui::windows::message::MessageWindow;
 use crate::ui::windows::Window;
+use eframe::epaint::Color32;
 use egui::{Button, DragValue, Grid, RichText};
 
 pub struct IfsParametersWindow {
@@ -56,7 +58,7 @@ impl Window for IfsParametersWindow {
                         let mut rule_removed: (bool, usize) = (false, 0);
 
                         let grid_columns = 8 + if context.ifs_state.is_coloring_enabled {
-                            1
+                            2
                         } else {
                             0
                         };
@@ -103,20 +105,47 @@ impl Window for IfsParametersWindow {
                                         reset_initialization = true;
                                     };
 
-                                    if context.ifs_state.is_coloring_enabled {
-                                        egui::color_picker::color_edit_button_srgba(
-                                            ui,
-                                            &mut context.ifs_state.colors[index_system],
-                                            egui::color_picker::Alpha::Opaque,
-                                        );
-                                    } else {
-                                        for color in &mut context.ifs_state.colors {
-                                            *color = colors::BLACK;
-                                        }
-                                    }
-
                                     if ui.button("Remove").clicked() {
                                         rule_removed = (true, index_system);
+                                    }
+
+                                    let scheme = &mut context.ifs_state.color_schemas[index_system];
+                                    let color = match &scheme {
+                                        ColorScheme::Fixed(color) => *color,
+                                        _ => colors::BLACK,
+                                    };
+                                    if context.ifs_state.is_coloring_enabled {
+                                        egui::ComboBox::from_id_salt(format!("ColorParameter{}", index_system))
+                                            .selected_text(format!("{}", &scheme))
+                                            .show_ui(ui, |ui| {
+                                                ui.selectable_value(
+                                                    scheme,
+                                                    ColorScheme::Standard,
+                                                    ColorScheme::Standard.to_string(),
+                                                );
+                                                ui.selectable_value(
+                                                    scheme,
+                                                    ColorScheme::Fixed(color),
+                                                    ColorScheme::Fixed(Color32::default()).to_string(),
+                                                );
+                                                ui.selectable_value(
+                                                    scheme,
+                                                    ColorScheme::Random,
+                                                    ColorScheme::Random.to_string(),
+                                                );
+                                            });
+
+                                        if let ColorScheme::Fixed(color) = scheme {
+                                            egui::color_picker::color_edit_button_srgba(
+                                                ui,
+                                                color,
+                                                egui::color_picker::Alpha::Opaque,
+                                            );
+                                        }
+                                    } else {
+                                        for color in &mut context.ifs_state.color_schemas {
+                                            *color = ColorScheme::Standard;
+                                        }
                                     }
 
                                     ui.end_row();
