@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   tests:
+    name: "Tests"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,8 +27,10 @@ jobs:
       - name: Run Tests
         run: cargo test --verbose
 
-  build-github-pages:
+  build-deploy-github-pages:
+    name: "Deploy on Pages"
     runs-on: ubuntu-latest
+    needs: [ tests ]
     steps:
       - uses: actions/checkout@v4
       - name: Setup toolchain for wasm
