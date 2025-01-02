@@ -8,17 +8,15 @@ include = ["**/*.rs", "Cargo.toml", "LICENSE", "rustfmt.toml", "assets/*"]
 repository = "https://github.com/xairaven/FractalRenderer"
 
 [dependencies]
-chrono = "0.4.39"             # Logging purposes.
 crossbeam = "0.8.4"           # Tools for concurrent programming
-dotenvy = "0.15.7"            # .env file processing.
 egui = "0.30.0"               # GUI Library.
 eframe = { version = "0.30.0", default-features = false, features = [
     "default_fonts",          # Embed the default egui fonts.
     "glow",                   # Use the glow rendering backend. Alternative: "wgpu".
     "wayland",                # To support Linux (and CI)
 ] }
-fern = "0.7.1"                # Logger.
 image = "0.25.5"              # Imaging library.
+include_dir = "0.7.4"         # Macro for embedding an entire directory tree into your binary.
 indoc = "2.0.5"               # Indented document literals
 log = "0.4.22"                # Logging facade.
 rand = "0.8.5"                # Random number generators and other randomness functionality.
@@ -26,7 +24,20 @@ rfd = "0.15.1"                # File Dialogs.
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.134"        # A JSON serialization/deserialization library
 strum_macros = "0.26.4"       # Helpful macros for working with enums and strings
-thiserror = "2.0.9"           # Custom enum errors.
+thiserror = "2.0.9"
+
+# Native:
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+chrono = "0.4.39"             # Logging purposes.
+dotenvy = "0.15.7"            # .env file processing.
+fern = "0.7.1"                # Logger.
+
+# Web:
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2.15", features = ["js"] }
+wasm-bindgen-futures = "0.4.49"           # Custom enum errors.
+web-sys = "0.3.76"            # To access the DOM (to hide the loading text)
 
 [profile.release]
+opt-level = 2                 # Fast and small wasm
 lto = true

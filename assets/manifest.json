@@ -1,0 +1,17 @@
+{
+  "name": "Fractal Renderer PWA",
+  "short_name": "fractal-renderer-pwa",
+  "icons": [
+    {
+      "src": "./assets/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ],
+  "lang": "en-US",
+  "id": "/index.html",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "white",
+  "theme_color": "white"
+}
