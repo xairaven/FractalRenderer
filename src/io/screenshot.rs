@@ -1,9 +1,13 @@
 use crate::io::filter::FileFilter;
 use egui::{ColorImage, Pos2, Rect};
 use image::ImageError;
-use std::fs;
-use std::path::PathBuf;
 use std::sync::Arc;
+
+#[cfg(not(target_arch = "wasm32"))]
+use std::path::PathBuf;
+
+#[cfg(target_arch = "wasm32")]
+use rfd::FileHandle;
 
 pub struct Screenshot {
     region: Rect,
@@ -44,7 +48,10 @@ impl Screenshot {
 
         self
     }
+}
 
+#[cfg(not(target_arch = "wasm32"))]
+impl Screenshot {
     pub fn save_dialog(&self) -> Result<(), ImageError> {
         let mut file_dialog = rfd::FileDialog::new();
 
@@ -69,9 +76,60 @@ impl Screenshot {
         );
 
         if result.is_err() {
-            let _ = fs::remove_file(&path);
+            let _ = std::fs::remove_file(&path);
         }
 
         result
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Screenshot {
+    pub async fn save_dialog(&self) -> Result<(), ImageError> {
+        use crate::io;
+
+        let mut file_dialog = rfd::AsyncFileDialog::new();
+
+        if let Some(filter) = &self.file_filter {
+            file_dialog = file_dialog.add_filter(&filter.name, &filter.file_extensions);
+
+            let name = io::ops_native::generate_filename(6, &filter.file_extensions);
+            file_dialog = file_dialog.set_file_name(&name);
+        }
+
+        let task = file_dialog.save_file();
+
+        if let Some(file) = task.await {
+            Ok(self.save_in(file).await?)
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn save_in(&self, file_handle: FileHandle) -> Result<(), ImageError> {
+        use image::codecs::png;
+        use image::ImageEncoder;
+        use std::io::Cursor;
+
+        let mut buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+        let encoder = png::PngEncoder::new(&mut buffer);
+
+        let result = png::PngEncoder::write_image(
+            encoder,
+            self.image.as_raw(),
+            self.image.width() as u32,
+            self.image.height() as u32,
+            image::ExtendedColorType::Rgba8,
+        );
+
+        if let Err(err) = result {
+            log::error!("Error saving a screenshot! {}", err);
+            return Err(err);
+        }
+
+        let data = buffer.into_inner();
+        file_handle.write(&data).await?;
+
+        Ok(())
     }
 }

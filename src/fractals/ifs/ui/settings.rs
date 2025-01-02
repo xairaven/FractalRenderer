@@ -80,7 +80,7 @@ impl IfsSettingsBlock {
             ui.vertical_centered_justified(|ui| {
                 for example in Example::iter() {
                     if ui.button(example.to_string()).clicked() {
-                        let json = match io::operations::load_from_path(example.path()) {
+                        let json = match io::ops_native::load_from_path(example.path()) {
                             Ok(json) => json,
                             Err(err) => {
                                 context.ifs_state = Default::default();
@@ -107,7 +107,7 @@ impl IfsSettingsBlock {
         ui.collapsing("Load from File", |ui| {
             ui.vertical_centered_justified(|ui| {
                 if ui.button("Open File...").clicked() {
-                    let json = match io::operations::load_with_file_pick(FileFilter::json()) {
+                    let json = match io::ops_native::load_with_file_pick(FileFilter::json()) {
                         Some(Ok(json)) => json,
                         Some(Err(err)) => {
                             let message = format!("File Error: {}", err);

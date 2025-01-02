@@ -81,14 +81,33 @@ impl Canvas {
                             .with_region(response.rect)
                             .with_image(image);
 
-                        if let Err(err) = screenshot.save_dialog() {
-                            let message = format!(
-                                "Error occurred while saving screenshot: {}",
-                                err
-                            );
-                            let _ = context
-                                .windows_sender
-                                .send(Box::new(MessageWindow::error(&message)));
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            if let Err(err) = screenshot.save_dialog() {
+                                let message = format!(
+                                    "Error occurred while saving screenshot: {}",
+                                    err
+                                );
+                                let _ = context
+                                    .windows_sender
+                                    .send(Box::new(MessageWindow::error(&message)));
+                            }
+                        }
+
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            let sender = context.windows_sender.clone();
+                            wasm_bindgen_futures::spawn_local(async move {
+                                if let Err(err) = screenshot.save_dialog().await {
+                                    let message = format!(
+                                        "Error occurred while saving screenshot: {}",
+                                        err
+                                    );
+
+                                    let _ = sender
+                                        .send(Box::new(MessageWindow::error(&message)));
+                                }
+                            });
                         }
                     }
                 });

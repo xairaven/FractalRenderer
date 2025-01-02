@@ -210,7 +210,7 @@ impl LSystemSettingsBlock {
             ui.vertical_centered_justified(|ui| {
                 for example in Example::iter() {
                     if ui.button(example.to_string()).clicked() {
-                        let json = match io::operations::load_from_path(example.path()) {
+                        let json = match io::ops_native::load_from_path(example.path()) {
                             Ok(json) => json,
                             Err(err) => {
                                 context.ifs_state = Default::default();
@@ -237,7 +237,7 @@ impl LSystemSettingsBlock {
         ui.collapsing("File Settings", |ui| {
             ui.vertical_centered_justified(|ui| {
                 if ui.button("Load from File").clicked() {
-                    let json = match io::operations::load_with_file_pick(FileFilter::json()) {
+                    let json = match io::ops_native::load_with_file_pick(FileFilter::json()) {
                         Some(Ok(json)) => json,
                         Some(Err(err)) => {
                             let message = format!("File Error: {}", err);
@@ -259,7 +259,7 @@ impl LSystemSettingsBlock {
                         }
                     };
 
-                    if let Some(Err(err)) = io::operations::save_with_file_pick(json, FileFilter::json()) {
+                    if let Some(Err(err)) = io::ops_native::save_with_file_pick(json, FileFilter::json()) {
                         let message = format!("File Error: {}", err);
                         let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                     }

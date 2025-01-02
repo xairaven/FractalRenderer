@@ -147,7 +147,7 @@ impl Window for IfsParametersWindow {
                             }
                         };
 
-                        if let Some(Err(err)) = io::operations::save_with_file_pick(json, FileFilter::json()) {
+                        if let Some(Err(err)) = io::ops_native::save_with_file_pick(json, FileFilter::json()) {
                             let message = format!("File Error: {}", err);
                             let _ = context.windows_sender.send(Box::new(MessageWindow::error(&message)));
                         }

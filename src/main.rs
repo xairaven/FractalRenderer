@@ -51,8 +51,15 @@ mod geometry {
 }
 mod io {
     pub mod filter;
-    pub mod operations;
     pub mod screenshot;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub mod ops_native;
+
+    #[cfg(target_arch = "wasm32")]
+    pub mod filename;
+    #[cfg(target_arch = "wasm32")]
+    pub mod ops_wasm;
 }
 mod math {
     pub mod angle;
